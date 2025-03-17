@@ -1,26 +1,214 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Croogla';
+  src: url('/Croogla4F.ttf') format('truetype');
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Theme colors */
+  --background: #2d4059;
+  --foreground: #ffd460;
+  --primary: #ffd460;
+  --secondary: #ea5455;
+  --accent: #fffff0;
+  
+  /* Navigation measurements */
+  --sidebar-width: 240px;
+  --bottom-nav-height: 64px;
+  
+  /* Animation durations */
+  --animation-fast: 150ms;
+  --animation-default: 300ms;
+  --animation-slow: 500ms;
+
+  /* Primary color and variants */
+  --color-primary: #6366f1;          /* Main brand color (indigo by default) */
+  --color-primary-dark: #4f46e5;     /* Darker shade for hover states */
+  --color-primary-light: #818cf8;    /* Lighter shade for highlights */
+  
+  /* Accent color for special elements */
+  --color-accent: #f472b6;           /* Secondary accent color (pink by default) */
+  
+  /* Background colors for different layers */
+  --color-background-dark: #111827;  /* Darkest background (near black) */
+  --color-background: #1f2937;       /* Main background color */
+  --color-background-light: #374151; /* Lighter background for cards */
+  --color-background-lighter: #4b5563; /* Even lighter background for interactive elements */
+  
+  /* Border color */
+  --color-border: #374151;           /* Border color for separation */
+  
+  /* Text colors */
+  --color-text: #f9fafb;             /* Primary text color */
+  --color-text-muted: #9ca3af;       /* Secondary/muted text */
+  --color-text-button: #111827;      /* Button text color, default dark */
+  --color-text-button-inverse: #ffffff; /* Inverse button text, for dark buttons */
+  
+  /* Border radius */
+  --radius-sm: 0.25rem;              /* Small radius (4px) */
+  --radius-md: 0.5rem;               /* Medium radius (8px) */
+  --radius-lg: 1rem;                 /* Large radius (16px) */
+  --radius-xl: 1.5rem;               /* Extra large radius (24px) */
+  --radius-full: 9999px;             /* Full radius for circles/pills */
+  
+  /* Icon container styling */
+  --icon-container-size: 3rem;         /* Size for icon containers (48px) */
+  --icon-container-size-lg: 4rem;      /* Large size option (64px) */
+  --icon-size: 1.5rem;                 /* Default icon size (24px) */
+  
+  /* Elevation/shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Alert colors */
+  --color-alert: #ef4444;           /* Red for error states/alerts */
+  --color-alert-dark: #dc2626;      /* Darker red for hover states */
+
+  /* Font families */
+  --font-croogla: 'Croogla', sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #2d4059;
+    --foreground: #ffd460;
   }
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* Mobile padding adjustment for bottom navigation */
+@media (max-width: 1024px) {
+  main {
+    padding-bottom: calc(var(--bottom-nav-height) + 1rem);
+  }
+}
+
+.sidebar-container {
+  width: var(--sidebar-width);
+}
+
+.main-content-with-sidebar {
+  margin-left: var(--sidebar-width);
+}
+
+@media (max-width: 1024px) {
+  .main-content-with-sidebar {
+    margin-left: 0;
+  }
+}
+
+/* Apply the variables to Tailwind's theme */
+@layer base {
+  .bg-primary { background-color: var(--color-primary); }
+  .bg-primary-dark { background-color: var(--color-primary-dark); }
+  .bg-primary-light { background-color: var(--color-primary-light); }
+  .bg-accent { background-color: var(--color-accent); }
+  .bg-background-dark { background-color: var(--color-background-dark); }
+  .bg-background { background-color: var(--color-background); }
+  .bg-background-light { background-color: var(--color-background-light); }
+  .bg-background-lighter { background-color: var(--color-background-lighter); }
+  
+  .text-primary { color: var(--color-primary); }
+  .text-accent { color: var(--color-accent); }
+  .text-button { color: var(--color-text-button); }
+  .text-button-inverse { color: var(--color-text-button-inverse); }
+  
+  .border-border { border-color: var(--color-border); }
+  
+  .hover\:bg-primary-dark:hover { background-color: var(--color-primary-dark); }
+  .hover\:bg-background-lighter\/80:hover { background-color: rgba(var(--color-background-lighter), 0.8); }
+  
+  /* Border Radius */
+  .rounded-container { border-radius: var(--radius-lg); }
+  .rounded-card { border-radius: var(--radius-md); }
+  .rounded-button { border-radius: var(--radius-md); }
+  .rounded-pill { border-radius: var(--radius-full); }
+  
+  /* Icon container classes */
+  .icon-container {
+    width: var(--icon-container-size);
+    height: var(--icon-container-size);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary);
+    color: var(--color-text-button-inverse);
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .icon-container:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  
+  .icon-container-lg {
+    width: var(--icon-container-size-lg);
+    height: var(--icon-container-size-lg);
+  }
+  
+  /* Icon size */
+  .icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    stroke-width: 2;
+  }
+  
+  /* Shadows */
+  .shadow-elevation {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .shadow-elevation-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .bg-alert { background-color: var(--color-alert); }
+  .bg-alert-dark { background-color: var(--color-alert-dark); }
+
+  /* Font family utilities */
+  .font-croogla { 
+    font-family: var(--font-croogla);
+  }
+  
+  /* Font variant utilities for Croogla */
+  .font-croogla-title {
+    font-family: var(--font-croogla);
+    font-size: 2rem;
+    letter-spacing: 0.025em;
+  }
+  
+  .font-croogla-subtitle {
+    font-family: var(--font-croogla);
+    font-size: 1.5rem;
+    letter-spacing: 0.015em;
+  }
+  
+  .font-croogla-accent {
+    font-family: var(--font-croogla);
+    font-size: 1.25rem;
+    letter-spacing: 0.01em;
+  }
 }

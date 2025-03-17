@@ -1,0 +1,12 @@
+{
+    "name": "rabita",
+    "version": "1.0.0",
+    "description": "decentralized connections marketplace",
+    "socials": {
+        "x": "https://x.com/rabitaclub",
+        "github": "https://github.com/0xrobinr/rabita-app"
+    },
+    "keywords": ["connections", "marketplace", "rabita", "network", "decentralized", "social", "web3", "blockchain", "crypto"],
+    "authors": [{ "name": "Robin Rajput", "url": "https://github.com/0xrobinr" }],
+    "creator": "Robin Rajput"
+}
