@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { useTwitterVerification } from '@/hooks/useTwitterVerification';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
-import { FiUsers, FiMessageCircle, FiDollarSign, FiInfo, FiArrowRight, FiTwitter, FiUser, FiCheckCircle, FiShield, FiFileText, FiCopy } from 'react-icons/fi';
+import { FiUsers, FiMessageCircle, FiDollarSign, FiInfo, FiArrowRight, FiUser, FiCheckCircle, FiShield, FiFileText, FiCopy } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import XLogo from '@/ui/icons/XLogo';
 import ConnectedAccounts from './ConnectedAccounts';
@@ -20,7 +20,8 @@ import {
 } from 'wagmi';
 import { Address, parseEther, parseAbi, ContractFunctionExecutionError } from 'viem';
 import BNBLogo from '../icons/BNBLogo';
-
+import Image from 'next/image';
+import appConfig from '@/config/app.config.json';
 // ABI for the registerKOL function
 const RABITA_REGISTRY_ABI = parseAbi([
   `function registerKOL( string _platform, string _username, string _name, uint256 _fee, string _profileIpfsHash, bytes32 _salt, bytes16 _nonce, uint256 _timestamp, string _domain, uint256 _expiresAt, bytes _verifierSignature, bytes _userSignature) external`,
@@ -68,7 +69,7 @@ export default function KOLRegistrationView() {
   const [signatureGenerationFailed, setSignatureGenerationFailed] = useState(false);
   const [formData, setFormData] = useState<RegistrationFormData>({
     profilePictureIpfsHash: '',
-    fee: '0.01', // Default fee in BNB
+    fee: '0.01',
   });
 
   // Wagmi hooks for contract interaction
@@ -436,7 +437,7 @@ export default function KOLRegistrationView() {
         setTxHash(hash);
         
         // Show success toast
-        toast.success('Transaction submitted!', { id: toastId, duration: 5000 });
+        // toast.success('Transaction submitted!', { id: toastId });
         
         // Show transaction hash toast (separate toast)
         toast.success(
@@ -451,7 +452,7 @@ export default function KOLRegistrationView() {
               View on BscScan
             </a>
           </div>,
-          { duration: 10000 }
+          { duration: 5000 }
         );
         
         // Update transaction submitted state
@@ -459,7 +460,7 @@ export default function KOLRegistrationView() {
         
         // Wait for transaction to be confirmed before showing final success message
         setTimeout(() => {
-          toast.success('Your KOL profile is being created on the blockchain!', {
+          toast.success('Your KOL profile is being created on the BSC!', {
             icon: '🚀',
             duration: 5000
           });
@@ -551,6 +552,10 @@ export default function KOLRegistrationView() {
     try {
       // Generate the signature
       const result = await generateSignature();
+
+      if (!result) {
+        throw new Error('Signature generation failed');
+      }
       
       // Clear timeout
       if (timeoutId) {
@@ -589,7 +594,8 @@ export default function KOLRegistrationView() {
         id: toastId,
         duration: 5000,
       });
-      
+
+      setIsGeneratingSignature(false);
       setSignatureGenerationFailed(true);
     } finally {
       // Always clear loading state, with a slight delay to allow for UI transitions
@@ -608,14 +614,14 @@ export default function KOLRegistrationView() {
   // If already in success state
   if (registrationStatus === 'success') {
     return (
-      <div className="container py-8">
+      <div className="container py-8 lowercase">
         <Card className="border-0 shadow-md p-8 text-center">
-          <FiCheckCircle className="text-green-500 mx-auto mb-4" size={48} />
-          <h2 className="text-2xl font-bold mb-2">Registration Complete!</h2>
-          <p className="text-muted-foreground mb-4">
-            Your KOL profile has been successfully created on the blockchain.
+          <Image src="/logo.svg" alt="logo" className='mx-auto mb-4' width={200} height={200}/>
+          <h2 className="text-2xl font-bold mb-2 text-primary">welcome to {appConfig.name}!</h2>
+          <p className="text-muted-foreground mb-4 text-primary/80">
+            Your KOL profile has been successfully created on the binance smart chain.
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-primary/40">
             Redirecting to your profile...
           </p>
         </Card>
@@ -648,7 +654,7 @@ export default function KOLRegistrationView() {
       <button
         type="button"
         onClick={() => handleFormVisibilityChange(true)}
-        className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium flex items-center justify-center gap-2"
+        className="w-full px-4 py-3 bg-primary text-dark rounded-lg hover:bg-primary-dark transition-colors font-medium flex items-center justify-center gap-2"
       >
         <span>Configure Your KOL Profile</span>
         <FiArrowRight />
@@ -657,7 +663,7 @@ export default function KOLRegistrationView() {
   };
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 lowercase">
       <Card className="border-0 shadow-md overflow-hidden shadow-elevation">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-primary/10 to-primary-dark/5 p-6">
@@ -668,9 +674,9 @@ export default function KOLRegistrationView() {
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Become a Key Opinion Leader</h1>
+              <h1 className="text-2xl font-bold text-foreground">Become a KOL</h1>
               <p className="text-muted-foreground mt-1 text-white">
-                Join Rabita as a KOL and start connecting with your fans in a whole new way
+              Join Rabita as a Key Opinion Leader and monetize your influence through every valuable interaction
               </p>
             </div>
           </div>
@@ -710,9 +716,6 @@ export default function KOLRegistrationView() {
           {/* Registration Process Section */}
           <div className="bg-gray-50 p-5 rounded-lg mb-6">
             <h3 className="font-medium mb-3">Registration Process</h3>
-            
-            {/* Registration progress indicator has been moved to RegistrationSteps component */}
-            
             {/* Registration Steps List */}
             <RegistrationSteps 
               isAuthenticated={isAuthenticated}
@@ -795,7 +798,7 @@ export default function KOLRegistrationView() {
                         <div className="flex items-start gap-2 mt-1.5" id="fee-description">
                           <FiInfo className="shrink-0 mt-0.5 text-gray-400" size={14} />
                           <p className="text-xs text-gray-500">
-                            This is the amount users will pay to send you a message. We recommend a reasonable amount (0.01-0.1 BNB) to maximize engagement.
+                            This is the amount users will pay to send you a message. We recommend a reasonable amount (0.01-0.5 BNB) to maximize engagement.
                           </p>
                         </div>
                         {parseFloat(formData.fee) <= 0 && (
@@ -916,7 +919,7 @@ export default function KOLRegistrationView() {
             
             {/* Guidance Panel */}
             {isTwitterVerified && !transactionSubmitted && (
-              <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4 transition-all duration-300 ease-in">
+              <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4 transition-all duration-300 ease-in lowercase">
                 {!twitterSignature && (
                   <div className="flex items-start gap-3">
                     <div className="text-blue-500 mt-1">
@@ -934,9 +937,9 @@ export default function KOLRegistrationView() {
                         onClick={handleGenerateSignature}
                         disabled={isGeneratingSignature}
                         className={cn(
-                          "mt-2 w-full sm:w-auto px-4 py-2 rounded-md text-white transition-colors duration-200 flex items-center justify-center gap-2 text-sm font-medium",
+                          "mt-2 w-full sm:w-auto px-4 py-2 rounded-md text-black transition-colors duration-200 flex items-center justify-center gap-2 text-sm font-medium",
                           signatureGenerationFailed
-                            ? "bg-red-500 hover:bg-red-600" 
+                            ? "bg-red-500 hover:bg-red-600 text-white" 
                             : "bg-primary hover:bg-primary-dark"
                         )}
                       >

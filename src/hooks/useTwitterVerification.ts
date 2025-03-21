@@ -173,8 +173,17 @@ export function useTwitterVerification() {
     signatureData,
     signature: signatureData?.signature || null,
     error,
-    // Add the expiration information
     expiresAt: signatureData?.expiresAt || null,
     isExpired: signatureData ? (Math.floor(Date.now() / 1000) > signatureData.expiresAt) : false,
-  }), [status, session, address, isTwitterVerified, signatureData, generateSignature, connectTwitter, disconnectTwitter, isVerifying, signatureData, error]);
+  }), [
+    status,
+    session,
+    isTwitterVerified,
+    connectTwitter,
+    disconnectTwitter,
+    generateSignature,
+    isVerifying,
+    signatureData,
+    error
+  ]);
 } 

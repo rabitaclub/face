@@ -2,6 +2,7 @@
 
 import { FiCheck, FiTwitter, FiLock, FiDollarSign, FiShield, FiCheckCircle, FiFileText } from 'react-icons/fi';
 import { cn } from '@/utils/cn';
+import XLogo from '../icons/XLogo';
 
 interface RegistrationStepsProps {
   isAuthenticated: boolean;
@@ -18,7 +19,7 @@ interface RegistrationStepsProps {
 
 /**
  * Modern component that displays the registration steps with visual connection lines and status indicators
- * Integrated with NextAuth for Twitter authentication and signature handling
+ * Integrated with NextAuth for X authentication and signature handling
  */
 export default function RegistrationSteps({
   isAuthenticated,
@@ -36,16 +37,16 @@ export default function RegistrationSteps({
   const steps = [
     {
       id: 1,
-      title: "Connect Twitter",
-      description: "Connect your Twitter account via NextAuth for secure verification",
+      title: "Connect Socially",
+      description: "Connect your X account via NextAuth for secure verification",
       completed: isAuthenticated,
       available: true,
-      icon: FiTwitter
+      icon: XLogo
     },
     {
       id: 2,
       title: "Verify Social Identity",
-      description: "Confirm your social identity through Twitter verification",
+      description: "Confirm your social identity through X verification",
       completed: isTwitterVerified,
       available: isAuthenticated,
       icon: FiLock
@@ -81,7 +82,7 @@ export default function RegistrationSteps({
   const completionPercentage = (completedSteps / steps.length) * 100;
 
   return (
-    <div className="pb-2">
+    <div className="pb-2 lowercase">
       {/* Progress bar that animates based on completion */}
       <div className="mb-6 relative">
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -142,7 +143,7 @@ export default function RegistrationSteps({
               "transition-colors duration-300",
               step.completed ? "text-primary" : step.available ? "text-gray-900" : "text-gray-400"
             )}>
-              <h4 className="font-medium text-sm flex items-center gap-2">
+              <h4 className="font-medium text-sm flex ml-2 items-center gap-2">
                 {step.title}
                 {step.completed && (
                   <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
@@ -151,23 +152,23 @@ export default function RegistrationSteps({
                 )}
               </h4>
               <p className={cn(
-                "text-xs mt-0.5 leading-relaxed",
+                "text-xs mt-0.5 leading-relaxed ml-2",
                 step.completed ? "text-gray-700" : step.available ? "text-gray-600" : "text-gray-400"
               )}>
                 {step.description}
               </p>
               
-              {/* Show signature generation button for step 2 when Twitter is verified but signature is missing */}
+              {/* Show signature generation button for step 2 when X is verified but signature is missing */}
               {step.id === 2 && isTwitterVerified && !signature && onGenerateSignature && (
                 <button
                   onClick={onGenerateSignature}
                   disabled={isGeneratingSignature}
                   className={cn(
-                    "mt-2 px-3 py-1.5 text-white text-xs rounded-md transition-colors duration-200 flex items-center gap-1.5",
+                    "mt-2 px-3 py-1.5 text-black text-xs rounded-md transition-colors duration-200 flex items-center gap-1.5",
                     isGeneratingSignature 
                       ? "bg-gray-400 cursor-not-allowed" 
                       : signatureGenerationFailed 
-                        ? "bg-red-500 hover:bg-red-600" 
+                        ? "bg-red-500 hover:bg-red-600 text-white" 
                         : "bg-primary/90 hover:bg-primary"
                   )}
                 >

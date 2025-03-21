@@ -11,6 +11,8 @@ interface VerifyRequestBody {
 // Initialize rate limiter - 5 requests per IP per minute
 const rateLimiter = new RateLimiter(5, 60);
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * API endpoint to generate cryptographic verification of Twitter profile linked to a wallet
  * Includes rate limiting, input validation, and CSRF protection
@@ -108,6 +110,11 @@ export async function POST(request: NextRequest) {
 
     // Record this successful API call with the rate limiter
     await rateLimiter.incrementCounter(clientIp);
+
+    // Simulate a delay in the response
+    // await delay(3000);
+
+    // throw new Error('Test error');
 
     // Return the signature data with security headers
     return NextResponse.json(parsedData, {

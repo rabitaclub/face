@@ -24,10 +24,7 @@ declare module "next-auth" {
 }
 
 // Define auth configuration
-export const {
-  handlers: { GET, POST },
-  auth,
-} = NextAuth({
+const handler = NextAuth({
   providers: [
     Twitter({
       clientId: process.env.TWITTER_CLIENT_ID!,
@@ -80,4 +77,6 @@ export const {
   session: {
     strategy: "jwt",
   },
-}); 
+});
+
+export { handler as GET, handler as POST }; 

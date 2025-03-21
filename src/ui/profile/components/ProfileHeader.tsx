@@ -17,7 +17,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           <Avatar className="w-32 h-32 border-4 border-background bg-background">
             {profile.profileIpfsHash ? (
               <Image 
-                src={`https://ipfs.io/ipfs/${profile.profileIpfsHash}`}
+                src={`${profile.profileIpfsHash.replace('https://rabita.club', '')}`}
                 alt={profile.socialHandle} 
                 fill
                 className="object-cover"

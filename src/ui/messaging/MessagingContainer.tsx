@@ -21,11 +21,6 @@ type AvatarStyle = 'identicon' | 'bottts' | 'micah' | 'avataaars' | 'lorelei';
 export function MessagingContainer() {
     const { isConnected } = useActiveWallet()
     const router = useRouter()
-    useEffect(() => {
-        if (!isConnected) {
-            router.replace('/')
-        }
-    }, [isConnected])
     // States for the messaging UI
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
     const [chatVisible, setChatVisible] = useState<boolean>(false);

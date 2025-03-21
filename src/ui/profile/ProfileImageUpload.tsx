@@ -72,9 +72,9 @@ const ProfileImageUpload = ({
   useEffect(() => {
     if (uploadedHash) {
       setIpfsHash(uploadedHash);
-      onIpfsHashChange(uploadedHash);
+      onIpfsHashChange(uploadResult?.gatewayUrl || uploadedHash);
 
-      console.debug('uploadedHash', uploadedHash, uploadResult);
+      // console.debug('uploadedHash', uploadedHash, uploadResult?.gatewayUrl);
       
       // Store gateway URL if available
       if (uploadResult?.gatewayUrl) {

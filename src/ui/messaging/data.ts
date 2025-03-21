@@ -64,53 +64,53 @@ const avatar5 = generateAvatar("0x6d4E05BEd83C7F3925DAf5FeD3Aef8BE7CFdb79B", 'lo
 
 // Mock contacts data with crypto wallet addresses
 export const mockContacts: Contact[] = [
-    {
-        id: 1,
-        name: formatWalletAddress("0x71C7656EC7ab88b098defB751B7401B5f6d8976F"),
-        walletAddress: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
-        avatar: avatar1,
-        status: "online",
-        lastMessage: "Just sent you 0.5 ETH",
-        lastMessageTime: "10:23",
-        unreadCount: 2
-    },
-    {
-        id: 2,
-        name: formatWalletAddress("0x3243Ed9fdCDE2345890DDEAf6b083CA4cF0F68f2"),
-        walletAddress: "0x3243Ed9fdCDE2345890DDEAf6b083CA4cF0F68f2",
-        avatar: avatar2,
-        status: "offline",
-        lastMessage: "Let's schedule the token swap",
-        lastMessageTime: "Yesterday"
-    },
-    {
-        id: 3,
-        name: formatWalletAddress("0x8e5afc37Bab8C2fC0F1c984204C81786D5a9bcE3"),
-        walletAddress: "0x8e5afc37Bab8C2fC0F1c984204C81786D5a9bcE3",
-        avatar: avatar3,
-        status: "away",
-        lastMessage: "Mint was successful",
-        lastMessageTime: "Yesterday"
-    },
-    {
-        id: 4,
-        name: formatWalletAddress("0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF"),
-        walletAddress: "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
-        avatar: avatar4,
-        status: "online",
-        lastMessage: "DAO meeting at 5pm",
-        lastMessageTime: "Monday",
-        unreadCount: 1
-    },
-    {
-        id: 5,
-        name: formatWalletAddress("0x6d4E05BEd83C7F3925DAf5FeD3Aef8BE7CFdb79B"),
-        walletAddress: "0x6d4E05BEd83C7F3925DAf5FeD3Aef8BE7CFdb79B",
-        avatar: avatar5,
-        status: "offline",
-        lastMessage: "Will check the smart contract",
-        lastMessageTime: "Monday"
-    }
+    // {
+    //     id: 1,
+    //     name: formatWalletAddress("0x71C7656EC7ab88b098defB751B7401B5f6d8976F"),
+    //     walletAddress: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+    //     avatar: avatar1,
+    //     status: "online",
+    //     lastMessage: "Just sent you 0.5 ETH",
+    //     lastMessageTime: "10:23",
+    //     unreadCount: 2
+    // },
+    // {
+    //     id: 2,
+    //     name: formatWalletAddress("0x3243Ed9fdCDE2345890DDEAf6b083CA4cF0F68f2"),
+    //     walletAddress: "0x3243Ed9fdCDE2345890DDEAf6b083CA4cF0F68f2",
+    //     avatar: avatar2,
+    //     status: "offline",
+    //     lastMessage: "Let's schedule the token swap",
+    //     lastMessageTime: "Yesterday"
+    // },
+    // {
+    //     id: 3,
+    //     name: formatWalletAddress("0x8e5afc37Bab8C2fC0F1c984204C81786D5a9bcE3"),
+    //     walletAddress: "0x8e5afc37Bab8C2fC0F1c984204C81786D5a9bcE3",
+    //     avatar: avatar3,
+    //     status: "away",
+    //     lastMessage: "Mint was successful",
+    //     lastMessageTime: "Yesterday"
+    // },
+    // {
+    //     id: 4,
+    //     name: formatWalletAddress("0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF"),
+    //     walletAddress: "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+    //     avatar: avatar4,
+    //     status: "online",
+    //     lastMessage: "DAO meeting at 5pm",
+    //     lastMessageTime: "Monday",
+    //     unreadCount: 1
+    // },
+    // {
+    //     id: 5,
+    //     name: formatWalletAddress("0x6d4E05BEd83C7F3925DAf5FeD3Aef8BE7CFdb79B"),
+    //     walletAddress: "0x6d4E05BEd83C7F3925DAf5FeD3Aef8BE7CFdb79B",
+    //     avatar: avatar5,
+    //     status: "offline",
+    //     lastMessage: "Will check the smart contract",
+    //     lastMessageTime: "Monday"
+    // }
 ];
 
 // Mock chat history

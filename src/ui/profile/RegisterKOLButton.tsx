@@ -10,11 +10,7 @@ import ProfileImageUpload from './ProfileImageUpload';
 import { FiArrowRight, FiCheckCircle, FiInfo, FiDollarSign, FiTwitter, FiUser } from 'react-icons/fi';
 import { cn } from '@/utils/cn';
 import CustomConnect from '@/components/CustomConnect';
-
-// ABI for the registerKOL function
-const RABITA_REGISTRY_ABI = parseAbi([
-  'function registerKOL(string memory twitterHandle, string memory name, string memory profilePictureIpfsHash, uint256 fee) external returns (uint256)',
-]);
+import * as RABITA_REGISTRY_ABI from '@/config/rabita.abi.json';
 
 // Contract address from environment
 const RABITA_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_RABITA_REGISTRY_ADDRESS as Address;
