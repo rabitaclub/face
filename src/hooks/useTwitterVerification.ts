@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useActiveWallet } from './useActiveWallet';
 import { ethers } from 'ethers';
@@ -8,7 +8,6 @@ import { ethers } from 'ethers';
 // Define TypeScript interface for signature data
 export interface SignatureData {
   signature: string;
-  twitterId: string;
   twitterUsername: string;
   walletAddress: string;
   platform: string;
@@ -44,18 +43,6 @@ export function useTwitterVerification() {
   const disconnectTwitter = useCallback(() => {
     signOut({ callbackUrl: '/profile' });
   }, []);
-
-  // Check for signature expiration
-  useEffect(() => {
-    if (signatureData) {
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (currentTime > signatureData.expiresAt) {
-        // Clear expired signature
-        setSignatureData(null);
-        setError('Signature has expired. Please generate a new one.');
-      }
-    }
-  }, [signatureData]);
 
   // Generate a verification signature
   const generateSignature = useCallback(async () => {
@@ -106,7 +93,7 @@ export function useTwitterVerification() {
       const data = await response.json();
       
       // Validate expected public fields are present
-      const requiredPublicFields = ['signature', 'twitterId', 'twitterUsername', 
+      const requiredPublicFields = ['signature', 'twitterUsername', 
         'walletAddress', 'platform', 'expiresAt'];
       
       for (const field of requiredPublicFields) {
@@ -132,11 +119,9 @@ export function useTwitterVerification() {
       if (data.walletAddress.toLowerCase() !== address.toLowerCase()) {
         throw new Error('Signature wallet address mismatch');
       }
-      
       // Convert to our expected SignatureData format before storing
       const normalizedData: SignatureData = {
         signature: data.signature,
-        twitterId: data.twitterId,
         twitterUsername: data.twitterUsername,
         walletAddress: data.walletAddress,
         platform: data.platform,
@@ -151,7 +136,7 @@ export function useTwitterVerification() {
       
       // Store the validated signature data
       setSignatureData(normalizedData);
-      console.debug('normalizedData', normalizedData);
+      // console.debug('normalizedData', normalizedData);
       return normalizedData;
     } catch (err) {
       console.error('Error generating signature:', err);
@@ -162,7 +147,19 @@ export function useTwitterVerification() {
     }
   }, [address, isTwitterVerified, session]);
 
-  return {
+  useEffect(() => {
+    // console.debug('signatureData', signatureData);
+    if (signatureData) {
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (currentTime > signatureData.expiresAt || !isTwitterVerified || status !== 'authenticated') {
+        // Clear expired signature
+        setSignatureData(null);
+        setError('Signature has expired. Please generate a new one.');
+      }
+    }
+  }, [signatureData, isTwitterVerified, status]);
+
+  return useMemo(() => ({
     isAuthenticated: status === 'authenticated',
     isLoading: status === 'loading',
     isTwitterVerified,
@@ -179,5 +176,5 @@ export function useTwitterVerification() {
     // Add the expiration information
     expiresAt: signatureData?.expiresAt || null,
     isExpired: signatureData ? (Math.floor(Date.now() / 1000) > signatureData.expiresAt) : false,
-  };
+  }), [status, session, address, isTwitterVerified, signatureData, generateSignature, connectTwitter, disconnectTwitter, isVerifying, signatureData, error]);
 } 

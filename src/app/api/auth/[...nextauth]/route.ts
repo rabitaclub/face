@@ -35,7 +35,7 @@ export const {
       authorization: {
         url: "https://twitter.com/i/oauth2/authorize",
         params: {
-          scope: "offline.access",
+          scope: "users.read tweet.read offline.access",
         },
       },
     }),

@@ -63,12 +63,12 @@ export async function POST(request: NextRequest) {
     
     const isRateLimited = await rateLimiter.isRateLimited(clientIp);
     
-    if (isRateLimited) {
-      return NextResponse.json(
-        { error: 'Too many requests, please try again later' }, 
-        { status: 429 }
-      );
-    }
+    // if (isRateLimited) {
+    //   return NextResponse.json(
+    //     { error: 'Too many requests, please try again later' }, 
+    //     { status: 429 }
+    //   );
+    // }
     
     // Get the user's session using the auth function
     const session = await auth();

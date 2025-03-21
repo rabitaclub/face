@@ -84,7 +84,7 @@ const SignatureVerification: React.FC<{ signatureData: string | null }> = ({ sig
     return (
       <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200 mt-6">
         <p className="text-gray-600">No verification data available.</p>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-gray-500 mt-2 lowercase">
           Generate a signature by verifying your Twitter account.
         </p>
       </div>
@@ -95,7 +95,7 @@ const SignatureVerification: React.FC<{ signatureData: string | null }> = ({ sig
     <div className="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* Expiration indicator */}
       {parsedData && (
-        <div className={`px-4 py-2 flex items-center justify-between ${
+        <div className={`px-4 py-2 flex items-center justify-between lowercase ${
           isExpired 
             ? 'bg-red-100 text-red-700' 
             : timeRemaining && timeRemaining.includes('s') 
@@ -117,7 +117,7 @@ const SignatureVerification: React.FC<{ signatureData: string | null }> = ({ sig
       <div className="flex border-b border-gray-200">
         <button
           onClick={() => setActiveTab('signature')}
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium lowercase ${
             activeTab === 'signature'
               ? 'border-b-2 border-blue-500 text-blue-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -127,7 +127,7 @@ const SignatureVerification: React.FC<{ signatureData: string | null }> = ({ sig
         </button>
         <button
           onClick={() => setActiveTab('data')}
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium lowercase ${
             activeTab === 'data'
               ? 'border-b-2 border-blue-500 text-blue-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -137,13 +137,13 @@ const SignatureVerification: React.FC<{ signatureData: string | null }> = ({ sig
         </button>
         <button
           onClick={() => setActiveTab('usage')}
-          className={`px-4 py-2 text-sm font-medium ${
+          className={`px-4 py-2 text-sm font-medium lowercase ${
             activeTab === 'usage'
               ? 'border-b-2 border-blue-500 text-blue-600'
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          How to Use
+          Info
         </button>
       </div>
       

@@ -6,7 +6,7 @@ import {
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
-import { bsc } from 'wagmi/chains';
+import { bsc, bscTestnet } from 'wagmi/chains';
 import {
   QueryClientProvider,
   QueryClient,
@@ -18,7 +18,7 @@ import { SessionProvider } from "next-auth/react";
 const config = getDefaultConfig({
     appName: 'Rabita Club',
     projectId: '665b79fbe4637d29026faa5e001f7cd1',
-    chains: [bsc],
+    chains: [bscTestnet],
     ssr: true
 });
 

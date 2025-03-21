@@ -3,7 +3,6 @@ import { ethers } from 'ethers';
 // Define types for structured signature data
 export interface SignaturePayload {
   walletAddress: string;
-  twitterId: string;
   twitterUsername: string;
   salt: string;
   platform: string;
@@ -18,11 +17,9 @@ export interface SignatureResponseData {
   // Public details shown to user
   signature: string;
   walletAddress: string;
-  twitterId: string;
   twitterUsername: string;
   platform: string;
   expiresAt: number;
-  
   // Technical details needed for verification
   // These are included but not displayed prominently to users
   _cryptoMetadata: {
@@ -80,7 +77,6 @@ export async function generateProfileSignature(
     // Create structured data for signing
     const payload: SignaturePayload = {
       walletAddress: walletAddress.toLowerCase(),
-      twitterId,
       twitterUsername,
       salt,
       platform: "twitter",
@@ -94,10 +90,9 @@ export async function generateProfileSignature(
     // This uses EIP-712 inspired approach but simplified for readability
     const messageHash = ethers.utils.keccak256(
       ethers.utils.defaultAbiCoder.encode(
-        ['address', 'string', 'string', 'bytes32', 'string', 'bytes16', 'uint256', 'string', 'uint256'],
+        ['address', 'string', 'bytes32', 'string', 'bytes16', 'uint256', 'string', 'uint256'],
         [
           payload.walletAddress,
-          payload.twitterId,
           payload.twitterUsername,
           payload.salt,
           payload.platform,
@@ -108,9 +103,24 @@ export async function generateProfileSignature(
         ]
       )
     );
+
+    console.debug(
+      [
+        payload.walletAddress,
+        payload.twitterUsername,
+        payload.salt,
+        payload.platform,
+        payload.nonce,
+        payload.timestamp,
+        payload.domain,
+        payload.expiresAt
+      ]
+    );
+    console.debug(messageHash);
     
     // Sign the hash using the private key
     const signature = await wallet.signMessage(ethers.utils.arrayify(messageHash));
+    console.debug(signature);
     
     // Return the signature with a structured format
     // Separate public data from cryptographic metadata
@@ -118,7 +128,6 @@ export async function generateProfileSignature(
       // Public information
       signature,
       walletAddress: payload.walletAddress,
-      twitterId: payload.twitterId,
       twitterUsername: payload.twitterUsername,
       platform: payload.platform,
       expiresAt: payload.expiresAt,
@@ -154,7 +163,6 @@ export function verifyProfileSignature(signatureData: string): boolean {
     const { 
       signature, 
       walletAddress, 
-      twitterId,
       twitterUsername,
       platform,
       expiresAt 
@@ -191,16 +199,15 @@ export function verifyProfileSignature(signatureData: string): boolean {
     // Recreate the message hash
     const messageHash = ethers.utils.keccak256(
       ethers.utils.defaultAbiCoder.encode(
-        ['address', 'string', 'string', 'bytes32', 'string', 'bytes16', 'uint256', 'string', 'uint256'],
+        ['address', 'string', 'bytes32', 'string', 'bytes16', 'uint256', 'string', 'uint256'],
         [
           walletAddress.toLowerCase(),
-          twitterId,
           twitterUsername,
           salt,
           platform,
           nonce,
           timestamp,
-          domain,
+          domain, 
           expiresAt
         ]
       )

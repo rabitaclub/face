@@ -22,18 +22,18 @@ export function TwitterVerificationStatus({
 }: TwitterVerificationStatusProps) {
   return (
     <div className="mb-8 p-4 bg-background rounded-lg shadow-sm">
-      <h2 className="font-medium text-lg mb-2 text-foreground">X verification</h2>
+      <h2 className="font-medium text-lg mb-2 text-foreground">X Verification</h2>
       
       {isVerified ? (
         <div className="mb-4">
           <div className="flex items-center mb-2">
-            <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500 mr-2" aria-hidden="true" />
             <p className="text-foreground">
               Verified as <span className="font-semibold">{name}</span>
             </p>
           </div>
           <div className="flex items-center">
-            <XLogo className="text-black mr-2" size={18} />
+            <XLogo className="text-black mr-2" size={18} aria-hidden="true" />
             <p className="text-foreground font-mono">@{username}</p>
           </div>
           
@@ -47,16 +47,16 @@ export function TwitterVerificationStatus({
       ) : (
         <div className="mb-4">
           <div className="flex items-center mb-4">
-            <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-            <p className="text-white">not verified</p>
+            <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2" aria-hidden="true" />
+            <p className="text-foreground">Not verified</p>
           </div>
           
           <button 
             onClick={onConnect}
             className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-button transition-colors"
           >
-            <XLogo className="text-white" size={18} />
-            <span>connect with X</span>
+            <XLogo className="text-white" size={18} aria-hidden="true" />
+            <span>Connect with X</span>
           </button>
         </div>
       )}

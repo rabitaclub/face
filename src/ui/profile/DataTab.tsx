@@ -56,10 +56,10 @@ const DataTab: React.FC<DataTabProps> = ({ signatureData, isExpired = false }) =
     <div className="mt-2">
       <div className={`bg-gray-100 p-4 rounded-md whitespace-pre-wrap break-all ${isExpired ? 'opacity-50' : ''}`}>
         <div className="mb-4">
-          <h3 className="font-medium text-lg flex items-center">
+          <h3 className="font-medium text-lg flex items-center lowercase">
             Verification Data {isExpired && <span className="text-red-500 ml-2">(Expired)</span>}
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 lowercase">
             This data verifies your Twitter account is linked to your wallet address
           </p>
         </div>
@@ -78,7 +78,7 @@ const DataTab: React.FC<DataTabProps> = ({ signatureData, isExpired = false }) =
         <div className="mt-4 pt-3 border-t border-gray-200">
           <button 
             onClick={toggleTechnicalDetails}
-            className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+            className="flex items-center text-sm text-blue-600 hover:text-blue-800 lowercase"
           >
             {showTechnicalDetails ? 'Hide' : 'Show'} Technical Details <FaKey className="ml-1" size={12} />
           </button>
@@ -87,7 +87,7 @@ const DataTab: React.FC<DataTabProps> = ({ signatureData, isExpired = false }) =
             <div className="mt-2 p-3 bg-gray-200 rounded border border-gray-300 space-y-2">
               <div className="flex items-center mb-1">
                 <FaLock className="text-gray-700 mr-1" size={12} />
-                <span className="text-xs text-gray-700">Technical Cryptographic Values</span>
+                <span className="text-xs text-gray-700 lowercase">technical cryptographic values</span>
               </div>
               {Object.entries(technicalData).map(([key, value]) => (
                 <div key={key} className="text-sm">

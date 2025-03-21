@@ -19,10 +19,10 @@ const SignatureTab: React.FC<SignatureTabProps> = ({
   return (
     <div className="mt-2">
       <div className="mb-4">
-        <h3 className="font-medium text-lg flex items-center">
+        <h3 className="font-medium text-lg flex items-center lowercase">
           Ethereum Signature {isExpired && <span className="text-red-500 ml-2">(Expired)</span>}
         </h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 lowercase">
           This cryptographic signature verifies your social identity on the blockchain
         </p>
       </div>

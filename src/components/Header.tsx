@@ -6,8 +6,6 @@ import Link from "next/link";
 import { themeConfig } from "@/config/theme.config";
 import { NavItems } from "@/config/menu.config";
 import { useActiveWallet } from "@/hooks/useActiveWallet";
-import Image from "next/image";
-import CustomConnect from "./CustomConnect";
 
 export default function Header() {
   const { isConnected } = useActiveWallet();

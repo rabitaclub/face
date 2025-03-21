@@ -18,11 +18,6 @@ export const NavItems: NavItem[] = [
     href: "/messages",
   },
   {
-    icon: <Search size={18} />,
-    label: "Search",
-    href: "/search",
-  },
-  {
     icon: <User size={18} />,
     label: "Profile",
     href: "/profile",

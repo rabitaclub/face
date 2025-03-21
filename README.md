@@ -20,6 +20,36 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Persistent Storage with Vercel KV
+
+This application uses [Vercel KV](https://vercel.com/docs/storage/vercel-kv) (Redis) for persistent storage of upload statuses and other data that needs to be shared across serverless functions and deployments.
+
+### Setting Up Vercel KV
+
+1. If you're deploying on Vercel, you can add the KV storage from the Vercel dashboard:
+   - Go to your project on Vercel
+   - Navigate to the "Storage" tab
+   - Select "Connect" for KV database
+   - Follow the setup instructions
+
+2. Set the following environment variables:
+   ```
+   KV_URL=your_vercel_kv_url
+   KV_REST_API_URL=your_vercel_kv_rest_api_url
+   KV_REST_API_TOKEN=your_vercel_kv_rest_api_token
+   KV_REST_API_READ_ONLY_TOKEN=your_vercel_kv_read_only_token
+   ```
+
+3. For local development:
+   - Copy the environment variables from your Vercel project
+   - Add them to your `.env.local` file
+
+### Fallback Implementation
+
+For local development without Vercel KV, the application uses a fallback in-memory implementation. This is automatically activated when the KV environment variables are not set.
+
+**Note:** The fallback implementation is not recommended for production as data will not persist between server restarts.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
