@@ -4,7 +4,14 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { AgentDataExport } from '@web3-storage/w3up-client';
+
+// Define the AgentDataExport type locally
+interface AgentDataExport {
+  did: string;
+  key?: string;
+  proof?: string;
+  capabilities?: string[];
+}
 
 // Path to store agent data - in production, use a secure storage mechanism
 const AGENT_DATA_PATH = process.env.AGENT_DATA_PATH || path.join(process.cwd(), '.w3up-agent.json');
@@ -19,69 +26,68 @@ export const getWeb3StorageKey = (): string => {
   if (!key) {
     throw new Error('W3UP_KEY environment variable is not set');
   }
-  
+
   return key;
 };
 
 /**
- * Get the stored agent data if it exists
- * @returns Agent data object or null if not found
+ * Get stored agent data from the filesystem
+ * Returns null if no data exists
  */
 export const getStoredAgentData = (): AgentDataExport | null => {
   try {
     if (fs.existsSync(AGENT_DATA_PATH)) {
-      const data = fs.readFileSync(AGENT_DATA_PATH, 'utf-8');
-      return JSON.parse(data) as AgentDataExport;
+      const data = fs.readFileSync(AGENT_DATA_PATH, 'utf8');
+      return JSON.parse(data);
     }
   } catch (error) {
-    console.error('Failed to read stored agent data:', error);
+    console.error('Error reading agent data:', error);
   }
   return null;
 };
 
 /**
- * Save agent data to disk for persistence
- * @param data Agent data to save
+ * Save agent data to the filesystem
+ * In production, use a secure storage mechanism
  */
 export const saveAgentData = (data: AgentDataExport): void => {
   try {
-    fs.writeFileSync(AGENT_DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
-    console.log('Agent data saved successfully');
+    fs.writeFileSync(AGENT_DATA_PATH, JSON.stringify(data, null, 2));
   } catch (error) {
-    console.error('Failed to save agent data:', error);
+    console.error('Error saving agent data:', error);
+    throw new Error('Failed to save agent data');
   }
 };
 
 /**
- * Validates that all required storage keys are configured
- * @returns True if all required keys are present
+ * Validate storage configuration
+ * Returns true if configuration is valid
  */
 export const validateStorageConfig = (): boolean => {
   try {
-    getWeb3StorageKey();
-    return true;
-  } catch (error) {
-    console.error('Storage configuration validation failed:', error);
+    const key = getWeb3StorageKey();
+    return !!key && key.length > 0;
+  } catch {
     return false;
   }
 };
 
 /**
- * Get all storage configuration values
- * @returns Object with all storage configuration values
+ * Get storage configuration
+ * Returns configuration object or throws error
  */
 export const getStorageConfig = () => {
+  const key = getWeb3StorageKey();
   return {
-    web3Storage: getWeb3StorageKey()
+    key,
+    agentData: getStoredAgentData(),
   };
 };
 
 /**
- * Obfuscate a key for logging (show only first and last few chars)
- * @param key API key to obfuscate
- * @returns Obfuscated key string
+ * Obfuscate key for logging/display
  */
 export const obfuscateKey = (key: string): string => {
-  if (key.length <= 8) return '****';
-  return `${key.substring(0, 3)}...${key.substring(key.length - 3)}`;
+  if (key.length <= 8) return '********';
+  return `${key.slice(0, 4)}...${key.slice(-4)}`;
 }; 

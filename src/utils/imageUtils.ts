@@ -1,5 +1,13 @@
 'use client';
 
+import { createHash } from 'crypto';
+
+interface SecureImageToken {
+  url: string;
+  expires: number;
+  signature: string;
+}
+
 /**
  * Compresses an image file by resizing and reducing quality
  * 
@@ -136,4 +144,20 @@ export async function generateFileHash(file: File): Promise<string> {
     // Read the file as an array buffer
     reader.readAsArrayBuffer(file);
   });
+}
+
+export function generateSecureImageToken(imageUrl: string, expiresInMinutes = 30): string {
+  const expires = Math.floor(Date.now() / 1000) + (expiresInMinutes * 60);
+  const data = `${imageUrl}|${expires}`;
+  const signature = createHash('sha256')
+    .update(data + process.env.NEXTAUTH_SECRET)
+    .digest('hex');
+
+  const token: SecureImageToken = {
+    url: imageUrl,
+    expires,
+    signature
+  };
+
+  return Buffer.from(JSON.stringify(token)).toString('base64');
 } 

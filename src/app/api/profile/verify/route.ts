@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../auth/[...nextauth]/route';
+import { auth } from "@/auth";
 import { generateProfileSignature } from '@/utils/signatureUtils';
 import { ethers } from 'ethers';
 import { RateLimiter } from '@/utils/rateLimiter';

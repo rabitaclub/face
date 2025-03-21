@@ -84,7 +84,7 @@ const ProfileImageUpload = ({
     }
   }, [uploadedHash, uploadResult, onIpfsHashChange]);
 
-  // Set Twitter image as preview on first load if available
+  // Set X image as preview on first load if available
   useEffect(() => {
     if (twitterImageUrl && !preview && !selectedFile) {
       // Use secure proxied URL for display to prevent CORS issues and unauthorized access
@@ -143,7 +143,7 @@ const ProfileImageUpload = ({
     }
   };
 
-  // Upload Twitter profile image to IPFS
+  // Upload X profile image to IPFS
   const uploadTwitterImageToIPFS = async () => {
     if (!twitterImageUrl) return;
     
@@ -153,7 +153,7 @@ const ProfileImageUpload = ({
     try {
       // Get secure access to the image via our proxy
       const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(twitterImageUrl)}`;
-      const toastId = toast.loading('Processing Twitter image...');
+      const toastId = toast.loading('Processing X image...');
 
       // Fetch the image through our secure proxy
       const response = await fetch(proxyUrl);
@@ -165,7 +165,7 @@ const ProfileImageUpload = ({
       const blob = await response.blob();
       
       // Create a file from the blob
-      const fileExt = 'jpg'; // Assume JPG for Twitter images
+      const fileExt = 'jpg'; // Assume JPG for X images
       const fileName = `profile-${address}.${fileExt}`;
       const file = new File([blob], fileName, { type: 'image/jpeg' });
       
@@ -174,7 +174,7 @@ const ProfileImageUpload = ({
       // Compress the image
       const compressedImage = await compressImage(file, 800, 0.8);
       
-      toast.loading('Uploading to IPFS...', { id: toastId });
+      toast.loading('Uploading to GF...', { id: toastId });
       
       // Create a file from the compressed image
       const finalFile = new File(
@@ -185,8 +185,8 @@ const ProfileImageUpload = ({
       
       // Upload to IPFS using our hook
       const result = await uploadFile(finalFile, {
-        name: 'Twitter Profile Image',
-        description: 'Twitter profile image for Rabita platform',
+        name: 'X Profile Image',
+        description: 'X profile image for Rabita platform',
         autoToast: false
       });
       
@@ -196,10 +196,10 @@ const ProfileImageUpload = ({
       }
       
       // Success is handled by the hook and useEffect
-      toast.success('Image uploaded to IPFS successfully', { id: toastId });
+      toast.success('Image uploaded successfully', { id: toastId });
     } catch (err) {
-      console.error('Error uploading Twitter image to IPFS:', err);
-      toast.error('Failed to upload Twitter image to IPFS');
+      console.error('Error uploading X image to IPFS:', err);
+      toast.error('Failed to upload X image to IPFS');
     }
   };
 
@@ -247,14 +247,14 @@ const ProfileImageUpload = ({
       fileInputRef.current.value = '';
     }
     
-    // Reset to Twitter image if available
+    // Reset to X image if available
     // if (twitterImageUrl) {
     //   setPreview(twitterImageUrl);
     //   setUsingTwitterImage(true);
     // }
   };
 
-  // Reset to Twitter image
+  // Reset to X image
   const resetToTwitterImage = () => {
     if (!twitterImageUrl) return;
     

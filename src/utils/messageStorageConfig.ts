@@ -1,7 +1,7 @@
 'use client';
 
 import { MessageContent, MessageStorage, StoredMessage } from './messageStorage';
-import { generateSecureImageToken } from '@/app/api/proxy-image/route';
+import { generateSecureImageToken } from './imageUtils';
 
 // Encryption key derivation (Web Crypto API)
 async function deriveEncryptionKey(password: string, salt: Uint8Array): Promise<CryptoKey> {

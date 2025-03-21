@@ -229,8 +229,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       },
     });
   } catch (error) {
-    console.error('Image proxy error:', error);
-    
+    console.error('Error proxying image:', error);
     return NextResponse.json(
       { error: 'Failed to proxy image' },
       { status: 500 }
@@ -271,29 +270,4 @@ function validateAuthorization(request: NextRequest): boolean {
   // Basic validation - you should implement proper checks
   // Default to false in production
   return process.env.NODE_ENV !== 'production';
-}
-
-/**
- * Helper function to generate a secure token for an image URL
- * Can be used by other parts of the application to create secure image links
- * 
- * @param imageUrl - The URL of the image to secure
- * @param expiresInMinutes - How long the token should be valid (defaults to 30 minutes)
- * @returns A secure token for accessing the image
- */
-export function generateSecureImageToken(imageUrl: string, expiresInMinutes = 30): string {
-  const SECRET_KEY = process.env.IMAGE_PROXY_SECRET || 'rabita-secure-image-proxy-secret-key';
-  const expires = Date.now() + expiresInMinutes * 60 * 1000;
-  
-  const signature = createHash('sha256')
-    .update(`${imageUrl}|${expires}|${SECRET_KEY}`)
-    .digest('hex');
-    
-  const token: SecureImageToken = {
-    url: imageUrl,
-    expires,
-    signature
-  };
-  
-  return Buffer.from(JSON.stringify(token)).toString('base64');
 } 

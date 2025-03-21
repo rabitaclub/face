@@ -165,7 +165,7 @@ export default function KOLRegistrationView() {
       toast.success('Signature copied to clipboard');
       setTimeout(() => setCopiedSignature(false), 2000);
     }
-  }, [twitterSignature]);
+  }, [twitterSignature, toast]);
 
   // Handle ownership verification by signing a message
   const verifyOwnership = useCallback(async () => {
@@ -307,7 +307,7 @@ export default function KOLRegistrationView() {
         }
       }, 500);
     }
-  }, [accountAddress, twitterUsername, twitterName, signatureData, twitterSignature, signTypedDataAsync, registrationStatus, ownershipVerified]);
+  }, [accountAddress, twitterUsername, twitterName, signatureData, twitterSignature, signTypedDataAsync, registrationStatus, ownershipVerified, toast]);
 
   // Handle form submission for registration
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
