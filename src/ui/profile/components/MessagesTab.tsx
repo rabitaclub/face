@@ -17,7 +17,7 @@ export function MessagesTab({ profile }: MessagesTabProps) {
         variant="outline"
         className='bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200' 
         onClick={() => {
-          navigator.clipboard.writeText(`https://rabita.club/message/${profile.socialHandle}`);
+          navigator.clipboard.writeText(`https://rabita.club/message/${profile.wallet}`);
           toast.success('Profile link copied to clipboard!');
         }}
       >
