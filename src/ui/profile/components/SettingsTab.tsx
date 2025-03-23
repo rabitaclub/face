@@ -25,14 +25,14 @@ export function SettingsTab({ profile }: SettingsTabProps) {
                 {profile.profileIpfsHash ? (
                   <SecureImage 
                     encryptedData={profile.profileIpfsHash}
-                    alt={profile.socialHandle}
+                    alt={profile.handle}
                     width={64}
                     height={64}
                     className="rounded-full"
                   />
                 ) : (
                   <div className="h-full w-full bg-primary/20 flex items-center justify-center text-xl text-primary font-medium">
-                    {profile.socialHandle.charAt(0).toUpperCase()}
+                    {profile.handle.charAt(0).toUpperCase()}
                   </div>
                 )}
               </Avatar>
