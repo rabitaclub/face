@@ -9,7 +9,7 @@ export default function KolConversationPage() {
 
   return (
     <div className="h-full flex flex-col w-full bg-white rounded-lg">
-      <MessagingContainer initialKolAddress={kolAddress} />
+      <MessagingContainer initialKolAddress={kolAddress as `0x${string}`} />
     </div>
   );
 } 
