@@ -29,7 +29,7 @@ export const authConfig = {
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
       authorization: {
-        url: "https://twitter.com/i/oauth2/authorize",
+        url: "https://x.com/i/oauth2/authorize",
         params: {
           scope: "users.read tweet.read offline.access",
         },
@@ -39,10 +39,9 @@ export const authConfig = {
   callbacks: {
     jwt: async ({ token, account, profile }) => {
       if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-        token.expiresAt = (account.expires_at as number) * 1000;
+        // Only store necessary non-sensitive information
         token.provider = account.provider;
+        token.expiresAt = (account.expires_at as number) * 1000;
 
         if (profile) {
           const twitterProfile = profile as unknown as TwitterProfile;
@@ -58,7 +57,7 @@ export const authConfig = {
         session.user.twitterId = token.twitterId as string;
         session.user.twitterUsername = token.twitterUsername as string;
         session.user.twitterName = token.twitterName as string;
-        session.user.isTwitterVerified = !!token.accessToken;
+        session.user.isTwitterVerified = !!token.provider;
       }
       return session;
     },

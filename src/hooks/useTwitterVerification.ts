@@ -5,7 +5,6 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useActiveWallet } from './useActiveWallet';
 import { ethers } from 'ethers';
 
-// Define TypeScript interface for signature data
 export interface SignatureData {
   signature: string;
   twitterUsername: string;
@@ -20,10 +19,6 @@ export interface SignatureData {
   };
 }
 
-/**
- * Custom hook for handling Twitter/X profile verification
- * With enhanced security features and error handling
- */
 export function useTwitterVerification() {
   const { data: session, status } = useSession();
   const { address } = useActiveWallet();
@@ -31,46 +26,37 @@ export function useTwitterVerification() {
   const [signatureData, setSignatureData] = useState<SignatureData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if the user has verified their Twitter account
   const isTwitterVerified = !!session?.user?.isTwitterVerified;
   
-  // Connect to Twitter
   const connectTwitter = useCallback(() => {
     signIn('twitter', { callbackUrl: '/profile' });
   }, []);
 
-  // Disconnect from Twitter
   const disconnectTwitter = useCallback(() => {
     signOut({ callbackUrl: '/profile' });
   }, []);
 
-  // Generate a verification signature
   const generateSignature = useCallback(async () => {
-    // Reset states
     setError(null);
     
-    // Validate wallet connection
     if (!address) {
       setError('Wallet not connected');
       return null;
     }
 
-    // Validate wallet address format
     if (!ethers.utils.isAddress(address)) {
       setError('Invalid wallet address format');
       return null;
     }
 
-    // Validate Twitter verification
     if (!isTwitterVerified || !session?.user?.twitterId || !session?.user?.twitterUsername) {
-      setError('Twitter account not verified');
+      setError('X account not verified, need verified X account to generate signature');
       return null;
     }
 
     try {
       setIsVerifying(true);
 
-      // Call the API to generate a signature
       const response = await fetch('/api/profile/verify', {
         method: 'POST',
         headers: {
@@ -79,20 +65,16 @@ export function useTwitterVerification() {
         body: JSON.stringify({ 
           walletAddress: address
         }),
-        // Add credential inclusion for security
         credentials: 'same-origin'
       });
 
-      // Handle non-OK responses
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to generate signature');
       }
 
-      // Parse and validate the signature data
       const data = await response.json();
       
-      // Validate expected public fields are present
       const requiredPublicFields = ['signature', 'twitterUsername', 
         'walletAddress', 'platform', 'expiresAt'];
       
@@ -102,7 +84,6 @@ export function useTwitterVerification() {
         }
       }
       
-      // Validate the crypto metadata fields are present
       if (!data._cryptoMetadata) {
         throw new Error('Signature data missing cryptographic metadata');
       }
@@ -115,11 +96,10 @@ export function useTwitterVerification() {
         }
       }
       
-      // Ensure wallet address matches
       if (data.walletAddress.toLowerCase() !== address.toLowerCase()) {
         throw new Error('Signature wallet address mismatch');
       }
-      // Convert to our expected SignatureData format before storing
+      
       const normalizedData: SignatureData = {
         signature: data.signature,
         twitterUsername: data.twitterUsername,
@@ -134,9 +114,7 @@ export function useTwitterVerification() {
         }
       };
       
-      // Store the validated signature data
       setSignatureData(normalizedData);
-      // console.debug('normalizedData', normalizedData);
       return normalizedData;
     } catch (err) {
       console.error('Error generating signature:', err);
@@ -148,11 +126,9 @@ export function useTwitterVerification() {
   }, [address, isTwitterVerified, session]);
 
   useEffect(() => {
-    // console.debug('signatureData', signatureData);
     if (signatureData) {
       const currentTime = Math.floor(Date.now() / 1000);
       if (currentTime > signatureData.expiresAt || !isTwitterVerified || status !== 'authenticated') {
-        // Clear expired signature
         setSignatureData(null);
         setError('Signature has expired. Please generate a new one.');
       }

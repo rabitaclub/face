@@ -1,65 +1,56 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { FiUpload, FiX, FiCheck, FiRefreshCw, FiExternalLink } from 'react-icons/fi';
-import { compressImage, generateFileHash } from '@/utils/imageUtils';
+import { compressImage } from '@/utils/imageUtils';
 import { useIpfsUpload } from '@/hooks/useIpfsUpload';
 import { useAccount } from 'wagmi';
 import XLogo from '../icons/XLogo';
 
-// Maximum file size in bytes (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-// Accepted image types
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 interface ProfileImageUploadProps {
   onIpfsHashChange: (hash: string) => void;
-  twitterImageUrl?: string;
+  socialImageUrl?: string;
   initialHash?: string;
 }
 
 const ProfileImageUpload = ({ 
   onIpfsHashChange, 
-  twitterImageUrl,
+  socialImageUrl,
   initialHash 
 }: ProfileImageUploadProps) => {
   const { address } = useAccount();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [usingTwitterImage, setUsingTwitterImage] = useState(false);
+  const [usingSocialImage, setUsingSocialImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [gatewayUrl, setGatewayUrl] = useState<string | null>(null);
   const [isUploaded, setIsUploaded] = useState(false);
   
-  // Use our custom hook for IPFS uploads
   const { 
     uploadFile, 
     isUploading, 
-    ipfsHash: uploadedHash,
+    profileUrl: uploadedHash,
     uploadResult,
     reset: resetUpload
   } = useIpfsUpload();
   
-  // Initialize with initial hash if provided
   const [ipfsHash, setIpfsHash] = useState<string | null>(initialHash || null);
-  
-  // Add a local progress state
   const [uploadProgress, setUploadProgress] = useState(0);
-  
-  // Update progress when uploading
+
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     
     if (isUploading) {
-      // Simulate progress updates
-      setUploadProgress(10); // Start with 10%
+      setUploadProgress(0);
       progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 1, 90)); // Increment but cap at 90%
-      }, 500);
+        setUploadProgress(prev => Math.min(prev + 1, 90));
+      }, 300);
     } else {
-      // Reset or complete progress
       setUploadProgress(isUploading ? 0 : 100);
     }
     
@@ -68,70 +59,40 @@ const ProfileImageUpload = ({
     };
   }, [isUploading]);
 
-  // Update local ipfsHash state when the hook's state changes
   useEffect(() => {
     if (uploadedHash) {
       setIpfsHash(uploadedHash);
-      onIpfsHashChange(uploadResult?.gatewayUrl || uploadedHash);
-
-      // console.debug('uploadedHash', uploadedHash, uploadResult?.gatewayUrl);
-      
-      // Store gateway URL if available
-      if (uploadResult?.gatewayUrl) {
-        setGatewayUrl(uploadResult.gatewayUrl);
-        setIsUploaded(true);
-      }
+      onIpfsHashChange(uploadedHash);
+      setGatewayUrl(uploadResult?.gatewayUrl || null);
+      setIsUploaded(true);
     }
   }, [uploadedHash, uploadResult, onIpfsHashChange]);
 
-  // Set X image as preview on first load if available
-  useEffect(() => {
-    if (twitterImageUrl && !preview && !selectedFile) {
-      // Use secure proxied URL for display to prevent CORS issues and unauthorized access
-      // Directly proxy internal requests, which will generate a token if needed
-      // const proxiedPreviewUrl = twitterImageUrl.startsWith('/api') 
-      //   ? twitterImageUrl // Already proxied
-      //   : `/api/proxy-image?url=${encodeURIComponent(twitterImageUrl)}`;
-        
-      // setPreview(proxiedPreviewUrl);
-      // setUsingTwitterImage(true);
-    }
-  }, [twitterImageUrl, preview, selectedFile]);
-
-  // Handle file selection
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
     
     const file = event.target.files[0];
-    
-    // Validate file type
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error('Please select a valid image file (JPEG, PNG, WebP, or GIF)');
       return;
     }
     
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       toast.error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
     try {
-      // Generate a unique hash for the file
-      const fileHash = await generateFileHash(file);
       const fileExt = file.name.split('.').pop() || 'jpg';
-      
-      // Create a new file with a unique name
       const uniqueFile = new File([file], `profile-${address}.${fileExt}`, {
         type: file.type
       });
       
       setSelectedFile(uniqueFile);
-      setUsingTwitterImage(false);
-      
-      // Create image preview
+      setUsingSocialImage(false);
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -143,19 +104,15 @@ const ProfileImageUpload = ({
     }
   };
 
-  // Upload X profile image to IPFS
-  const uploadTwitterImageToIPFS = async () => {
-    if (!twitterImageUrl) return;
+  const uploadProfileImage = async () => {
+    if (!socialImageUrl) return;
     
-    // Reset any previous upload state
     resetUpload();
     
+    const toastId = toast.loading('Processing social profile image...');
     try {
-      // Get secure access to the image via our proxy
-      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(twitterImageUrl)}`;
-      const toastId = toast.loading('Processing X image...');
+      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(socialImageUrl)}`;
 
-      // Fetch the image through our secure proxy
       const response = await fetch(proxyUrl);
       
       if (!response.ok) {
@@ -164,77 +121,62 @@ const ProfileImageUpload = ({
       
       const blob = await response.blob();
       
-      // Create a file from the blob
-      const fileExt = 'jpg'; // Assume JPG for X images
+      const fileExt = 'jpg';
       const fileName = `profile-${address}.${fileExt}`;
       const file = new File([blob], fileName, { type: 'image/jpeg' });
       
       toast.loading('Compressing image...', { id: toastId });
       
-      // Compress the image
       const compressedImage = await compressImage(file, 800, 0.8);
       
-      toast.loading('Uploading to GF...', { id: toastId });
+      toast.loading('Uploading...', { id: toastId, duration: Infinity });
       
-      // Create a file from the compressed image
       const finalFile = new File(
         [compressedImage], 
         fileName, 
         { type: 'image/jpeg' }
       );
       
-      // Upload to IPFS using our hook
       const result = await uploadFile(finalFile, {
-        name: 'X Profile Image',
-        description: 'X profile image for Rabita platform',
+        name: 'Social Profile Image',
+        description: 'Social profile image for Rabita platform',
         autoToast: false
       });
       
-      // Save gateway URL if available
       if (result.gatewayUrl) {
         setGatewayUrl(result.gatewayUrl);
       }
       
-      // Success is handled by the hook and useEffect
-      toast.success('Image uploaded successfully', { id: toastId });
+      toast.success('Image uploaded successfully', { id: toastId, duration: 3000 });
     } catch (err) {
-      console.error('Error uploading X image to IPFS:', err);
-      toast.error('Failed to upload X image to IPFS');
+      console.error('Error uploading social profile image:', err);
+      toast.error('Failed to upload social profile image', { id: toastId, duration: 3000 });
     }
   };
 
-  // Handle upload button click
   const handleUpload = async () => {
-    // Reset any previous upload state
     setIsUploaded(false);
     resetUpload();
     
-    if (usingTwitterImage && twitterImageUrl) {
-      await uploadTwitterImageToIPFS();
+    if (usingSocialImage && socialImageUrl) {
+      await uploadProfileImage();
     } else if (selectedFile) {
       try {
-        // Upload the selected file using our hook
         const result = await uploadFile(selectedFile, {
           name: 'Profile Image',
           description: 'User profile image for Rabita platform'
         });
         
-        // Save gateway URL if available
         if (result.gatewayUrl) {
           setGatewayUrl(result.gatewayUrl);
-        }
-        
-        // Success is handled by the hook and useEffect
+        }  
       } catch (error) {
-        // Error is handled by the hook
         console.error('Error in upload handler:', error);
       }
     }
   };
 
-  // Remove the selected image
   const handleRemoveImage = () => {
-    console.debug('handleRemoveImage', preview);
     setSelectedFile(null);
     setPreview(null);
     setIpfsHash(null);
@@ -242,43 +184,31 @@ const ProfileImageUpload = ({
     resetUpload();
     onIpfsHashChange('');
     
-    // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    
-    // Reset to X image if available
-    // if (twitterImageUrl) {
-    //   setPreview(twitterImageUrl);
-    //   setUsingTwitterImage(true);
-    // }
   };
 
-  // Reset to X image
-  const resetToTwitterImage = () => {
-    if (!twitterImageUrl) return;
-    
-    // Use securely proxied URL for display
-    const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(twitterImageUrl)}`;
+  const resetToSocialImage = () => {
+    if (!socialImageUrl) return;
+    const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(socialImageUrl)}`;
     
     setSelectedFile(null);
     setPreview(proxiedUrl);
-    setUsingTwitterImage(true);
+    setUsingSocialImage(true);
     setIpfsHash(null);
     setGatewayUrl(null);
     resetUpload();
     onIpfsHashChange('');
     
-    // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  // Open gateway URL in new tab
   const openGatewayUrl = () => {
     if (gatewayUrl) {
-      window.open(gatewayUrl, '_blank', 'noopener,noreferrer');
+      window.open("/api/secure-image?data=" + gatewayUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -286,10 +216,10 @@ const ProfileImageUpload = ({
     <div>
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-sm font-medium text-primary">Profile Image</h3>
-        {twitterImageUrl && !usingTwitterImage && !isUploaded && (
+        {socialImageUrl && !usingSocialImage && !isUploaded && (
           <button
             type="button"
-            onClick={resetToTwitterImage}
+            onClick={resetToSocialImage}
             className="text-xs text-primary hover:text-primary-dark flex items-center gap-1"
           >
             <FiRefreshCw size={12} />
@@ -353,7 +283,7 @@ const ProfileImageUpload = ({
             onClick={handleUpload}
             className="px-4 py-2 text-sm font-medium text-dark bg-primary rounded-md hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 mt-2"
           >
-            Upload to Greenfield
+            Upload to Web3
           </button>
         )}
         

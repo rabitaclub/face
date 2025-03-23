@@ -103,24 +103,9 @@ export async function generateProfileSignature(
         ]
       )
     );
-
-    console.debug(
-      [
-        payload.walletAddress,
-        payload.twitterUsername,
-        payload.salt,
-        payload.platform,
-        payload.nonce,
-        payload.timestamp,
-        payload.domain,
-        payload.expiresAt
-      ]
-    );
-    console.debug(messageHash);
     
     // Sign the hash using the private key
     const signature = await wallet.signMessage(ethers.utils.arrayify(messageHash));
-    console.debug(signature);
     
     // Return the signature with a structured format
     // Separate public data from cryptographic metadata
@@ -229,3 +214,152 @@ export function verifyProfileSignature(signatureData: string): boolean {
     return false;
   }
 } 
+
+/**
+ * Encrypts a message using a signature-derived encryption key
+ * Uses compact binary encoding for minimal payload size
+ * @param message - The plaintext message to encrypt
+ * @returns Promise resolving to the encrypted message package
+ */
+export async function signToEncryptMessage(message: string): Promise<string> {
+  try {
+    // Get the private key from environment variables
+    const privateKey = process.env.SIGNATURE_PRIVATE_KEY;
+    if (!privateKey) {
+      throw new Error('Signature private key is not configured');
+    }
+
+    // Create a wallet instance from the private key
+    const wallet = new ethers.Wallet(privateKey);
+    
+    // Use smaller but still secure parameters
+    // Use 16 bytes (128 bits) for salt - still cryptographically strong
+    const salt = ethers.utils.hexlify(ethers.utils.randomBytes(16));
+    
+    // Generate a random 12-byte IV for AES-GCM (96 bits is the recommended size)
+    const iv = ethers.utils.hexlify(ethers.utils.randomBytes(12));
+    
+    // Create a unique message to sign for key derivation
+    const signatureMessage = ethers.utils.keccak256(
+      ethers.utils.defaultAbiCoder.encode(
+        ['string', 'bytes16', 'bytes12'],
+        ['ENCRYPT', salt, iv]
+      )
+    );
+    
+    // Sign the message to get a deterministic signature
+    const signature = await wallet.signMessage(ethers.utils.arrayify(signatureMessage));
+    
+    // Use crypto for encryption
+    const crypto = require('crypto');
+    
+    // Derive a 32-byte key from the signature using SHA-256
+    const encryptionKey = crypto.createHash('sha256').update(signature).digest();
+    
+    // Encrypt the message using AES-256-GCM
+    const cipher = crypto.createCipheriv(
+      'aes-256-gcm', 
+      encryptionKey, 
+      Buffer.from(ethers.utils.arrayify(iv))
+    );
+    
+    // Encrypt the message
+    let encrypted = cipher.update(message, 'utf8');
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    
+    // Get the authentication tag (16 bytes)
+    const authTag = cipher.getAuthTag();
+    
+    // Combine all binary data into a single compact buffer
+    // Format: 1 byte version + 16 bytes salt + 12 bytes IV + 16 bytes authTag + encrypted data
+    const versionByte = Buffer.from([1]); // Version 1
+    const saltBuffer = Buffer.from(ethers.utils.arrayify(salt));
+    const ivBuffer = Buffer.from(ethers.utils.arrayify(iv));
+    
+    // Combine all parts into a single buffer
+    const packageBuffer = Buffer.concat([
+      versionByte,    // 1 byte
+      saltBuffer,     // 16 bytes
+      ivBuffer,       // 12 bytes
+      authTag,        // 16 bytes
+      encrypted       // variable length
+    ]);
+    
+    // Use base64url encoding (more compact than regular base64)
+    return packageBuffer.toString('base64url');
+  } catch (error) {
+    console.error('Error encrypting message:', error);
+    throw new Error('Failed to encrypt message');
+  }
+}
+
+/**
+ * Decrypts a message that was encrypted with signToEncryptMessage
+ * @param encryptedPackage - The encrypted message package
+ * @returns The decrypted plaintext message
+ */
+export async function signToDecryptMessage(encryptedPackage: string): Promise<string> {
+  try {
+    // Decode the base64url string back to buffer
+    const packageBuffer = Buffer.from(encryptedPackage, 'base64url');
+    
+    // Get the private key from environment variables
+    const privateKey = process.env.SIGNATURE_PRIVATE_KEY;
+    if (!privateKey) {
+      throw new Error('Signature private key is not configured');
+    }
+
+    // Create a wallet instance from the private key
+    const wallet = new ethers.Wallet(privateKey);
+    
+    // Extract components from the buffer
+    const version = packageBuffer[0];
+    
+    // Verify the version to ensure compatibility
+    if (version !== 1) {
+      throw new Error('Unsupported encryption version');
+    }
+    
+    // Extract binary components
+    const salt = ethers.utils.hexlify(packageBuffer.slice(1, 17));        // 16 bytes
+    const iv = ethers.utils.hexlify(packageBuffer.slice(17, 29));         // 12 bytes
+    const authTag = packageBuffer.slice(29, 45);                          // 16 bytes
+    const encryptedData = packageBuffer.slice(45);                        // remainder
+    
+    // Recreate the signature message that was used for encryption
+    const signatureMessage = ethers.utils.keccak256(
+      ethers.utils.defaultAbiCoder.encode(
+        ['string', 'bytes16', 'bytes12'],
+        ['ENCRYPT', salt, iv]
+      )
+    );
+    
+    // Sign the message to get the same deterministic signature used for encryption
+    const signature = await wallet.signMessage(ethers.utils.arrayify(signatureMessage));
+    
+    // Use the signature as the key material for decryption
+    const crypto = require('crypto');
+    
+    // Derive the same 32-byte key from the signature
+    const decryptionKey = crypto.createHash('sha256').update(signature).digest();
+    
+    // Create a decipher with the same parameters
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm', 
+      decryptionKey, 
+      Buffer.from(ethers.utils.arrayify(iv))
+    );
+    
+    // Set the authentication tag
+    decipher.setAuthTag(authTag);
+    
+    // Decrypt the message
+    let decrypted = decipher.update(encryptedData);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    
+    return decrypted.toString('utf8');
+  } catch (error) {
+    console.error('Error decrypting message:', error);
+    throw new Error('Failed to decrypt message');
+  }
+}

@@ -10,10 +10,6 @@ import KOLRegistrationView from './KOLRegistrationView';
 import KOLProfileView from '@/ui/profile/KOLProfileView';
 import { formatEther } from 'viem';
 
-/**
- * Main container component for the profile page
- * Handles different states: not connected, loading, registered, and registration flow
- */
 export default function ProfileContainer() {
   const { address, isConnected } = useActiveWallet();
   const { 
@@ -22,21 +18,14 @@ export default function ProfileContainer() {
     hasProfileData, 
     refetch 
   } = useKOLProfileData(address);
-
-  console.debug('profile', profile);
-
-  // Metrics - Would be fetched from API in production
   const [metrics, setMetrics] = useState({
     totalMessages: 0,
     totalPayments: "0",
     totalFollowers: 0
   });
 
-  // Fetch metrics when profile data is available
   useEffect(() => {
     if (hasProfileData && address) {
-      // Here you would fetch actual metrics from your backend
-      // This is just placeholder data
       setMetrics({
         totalMessages: Math.floor(Math.random() * 50),
         totalPayments: formatEther(BigInt(Math.floor(Math.random() * 5 * 1e18))),
@@ -45,10 +34,9 @@ export default function ProfileContainer() {
     }
   }, [hasProfileData, address]);
 
-  // Handle connection states
   if (!isConnected) {
     return (
-      <div className="container py-8">
+      <div className="container py-8 lowercase">
         <Card className="border-0 shadow-md bg-background-light">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-bold text-foreground">Connect Your Wallet</CardTitle>
@@ -64,20 +52,19 @@ export default function ProfileContainer() {
     );
   }
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="container py-8">
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md bg-background-light">
           <CardHeader className="pb-2">
-            <Skeleton className="h-8 w-3/4 mb-2" />
-            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-8 w-3/4 mb-2 bg-primary/20" />
+            <Skeleton className="h-4 w-1/2 bg-primary/10" />
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Skeleton className="h-40 w-full" />
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-40 w-full bg-primary/15" />
+              <Skeleton className="h-20 w-full bg-primary/10" />
+              <Skeleton className="h-20 w-full bg-primary/10" />
             </div>
           </CardContent>
         </Card>
@@ -85,11 +72,9 @@ export default function ProfileContainer() {
     );
   }
 
-  // If the user is not a registered KOL, show registration flow
   if (!hasProfileData) {
     return <KOLRegistrationView />;
   }
 
-  // KOL Profile view - user is registered
   return <KOLProfileView profile={profile} metrics={metrics} />;
 } 

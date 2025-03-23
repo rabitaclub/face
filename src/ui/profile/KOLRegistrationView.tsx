@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { useTwitterVerification } from '@/hooks/useTwitterVerification';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
-import { FiUsers, FiMessageCircle, FiDollarSign, FiInfo, FiArrowRight, FiUser, FiCheckCircle, FiShield, FiFileText, FiCopy } from 'react-icons/fi';
+import { FiUsers, FiInfo, FiArrowRight, FiUser, FiCheckCircle, FiFileText } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import XLogo from '@/ui/icons/XLogo';
 import ConnectedAccounts from './ConnectedAccounts';
@@ -22,26 +22,18 @@ import { Address, parseEther, parseAbi, ContractFunctionExecutionError } from 'v
 import BNBLogo from '../icons/BNBLogo';
 import Image from 'next/image';
 import appConfig from '@/config/app.config.json';
-// ABI for the registerKOL function
-const RABITA_REGISTRY_ABI = parseAbi([
-  `function registerKOL( string _platform, string _username, string _name, uint256 _fee, string _profileIpfsHash, bytes32 _salt, bytes16 _nonce, uint256 _timestamp, string _domain, uint256 _expiresAt, bytes _verifierSignature, bytes _userSignature) external`,
-]);
+import RABITA_REGISTRY_ABI from '@/config/rabita.abi.json';
+import { Loader2 } from 'lucide-react';
+import RabitaLogo from '../icons/RabitaLogo';
 
-// Contract address from environment
 const RABITA_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_RABITA_REGISTRY_ADDRESS as Address;
-
-// Registration status enum
 type RegistrationStatus = 'idle' | 'signing' | 'pending' | 'success' | 'error';
 
-// FormData interface for registration
 interface RegistrationFormData {
   profilePictureIpfsHash: string;
   fee: string;
 }
 
-/**
- * Handles the KOL registration process including the promotion and steps
- */
 export default function KOLRegistrationView() {
   const { address, isConnected } = useActiveWallet();
   const {
@@ -53,18 +45,16 @@ export default function KOLRegistrationView() {
     signature: twitterSignature,
     signatureData,
     generateSignature,
+    disconnectTwitter
   } = useTwitterVerification();
 
   const { address: accountAddress } = useAccount();
-
-  // Registration process tracking states
   const [formDataVisible, setFormDataVisible] = useState(false);
   const [hasSetFee, setHasSetFee] = useState(true);
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('idle');
   const [transactionSubmitted, setTransactionSubmitted] = useState(false);
   const [ownershipVerified, setOwnershipVerified] = useState(false);
   const [userVerifySignature, setUserVerifySignature] = useState<string | undefined>(undefined);
-  const [copiedSignature, setCopiedSignature] = useState(false);
   const [isGeneratingSignature, setIsGeneratingSignature] = useState(false);
   const [signatureGenerationFailed, setSignatureGenerationFailed] = useState(false);
   const [formData, setFormData] = useState<RegistrationFormData>({
@@ -72,58 +62,43 @@ export default function KOLRegistrationView() {
     fee: '0.01',
   });
 
-  // Wagmi hooks for contract interaction
   const { writeContractAsync } = useWriteContract();
   const { signTypedDataAsync } = useSignTypedData();
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined);
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = 
+  const { isSuccess: isConfirmed } = 
     useWaitForTransactionReceipt({ 
       hash: txHash,
       confirmations: 1,
     });
 
-  // Get the actual X handle and name to use
-  const effectiveTwitterHandle = twitterUsername || '';
-  const effectiveName = twitterName || effectiveTwitterHandle || '';
-  
-  // Get the profile image, ensuring it's a string or undefined (not null)
+  const effectiveSocialHandle = twitterUsername || '';
+  const effectiveName = twitterName || effectiveSocialHandle || '';  
   const effectiveProfileImageUrl = (typeof twitterImage === 'string' ? twitterImage : undefined);
 
-  // Reset registration when wallet changes
   useEffect(() => {
     setRegistrationStatus('idle');
     setFormDataVisible(false);
     setHasSetFee(true);
     setTransactionSubmitted(false);
     setOwnershipVerified(false);
-    setCopiedSignature(false);
     setIsGeneratingSignature(false);
     setSignatureGenerationFailed(false);
   }, [address]);
 
-  // Update registration status based on confirmation
   useEffect(() => {
     if (isConfirmed && txHash) {
       setRegistrationStatus('success');
       setTransactionSubmitted(true);
-      toast.success('Successfully registered as a KOL!', {
-        duration: 5000,
-        icon: <FiCheckCircle className="text-green-500" size={18} />,
-      });
       
-      // After successful registration, redirect to profile page after a delay
       setTimeout(() => {
-        window.location.reload();
-      }, 8000);
+        disconnectTwitter();
+      }, 6500);
     }
   }, [isConfirmed, txHash]);
 
-  // Handle form visibility changes
   const handleFormVisibilityChange = useCallback((isVisible: boolean) => {
-    console.debug('Form visibility changed:', isVisible);
     setFormDataVisible(isVisible);
     
-    // When form is shown, scroll to it for better visibility
     if (isVisible) {
       setTimeout(() => {
         window.scrollTo({
@@ -134,58 +109,31 @@ export default function KOLRegistrationView() {
     }
   }, []);
 
-  // Handle profile image IPFS hash change
   const handleIpfsHashChange = useCallback((hash: string) => {
     setFormData(prev => ({ ...prev, profilePictureIpfsHash: hash }));
   }, []);
 
-  // Handle fee change
   const handleFeeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow only numbers and decimal point
     const value = e.target.value.replace(/[^0-9.]/g, '');
-    
-    // Prevent multiple decimal points
     const parts = value.split('.');
     const sanitizedValue = parts.length > 2 
       ? `${parts[0]}.${parts.slice(1).join('')}`
       : value;
-      
     setFormData(prev => ({ ...prev, fee: sanitizedValue }));
-    
-    // Check if a valid fee is set
     const isValidFee = parseFloat(sanitizedValue) > 0;
     setHasSetFee(isValidFee);
   }, []);
-  
-  // Handle copying signature to clipboard
-  const handleCopySignature = useCallback(() => {
-    if (twitterSignature) {
-      navigator.clipboard.writeText(twitterSignature);
-      setCopiedSignature(true);
-      toast.success('Signature copied to clipboard');
-      setTimeout(() => setCopiedSignature(false), 2000);
-    }
-  }, [twitterSignature, toast]);
 
-  // Handle ownership verification by signing a message
   const verifyOwnership = useCallback(async () => {
     if (!accountAddress || !twitterUsername || !twitterName || !signatureData || !twitterSignature) {
       toast.error('Missing information for verification');
       return;
     }
     
-    // Prevent multiple clicks/verifications
     if (registrationStatus === 'signing') return null;
     
     try {
       setRegistrationStatus('signing');
-      
-      // Create expiration timestamp (24 hours from now)
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
-      const expirationTimestamp = Math.floor(expiresAt.getTime() / 1000);
-      
-      // Create message to sign
       const messageToSign = {
         walletAddress: accountAddress,
         platform: 'twitter',
@@ -198,12 +146,10 @@ export default function KOLRegistrationView() {
         signature: signatureData.signature as `0x${string}`,
       };
       
-      // Show toast notification with a clear ID
       const toastId = toast.loading('Please sign the message to verify account ownership...', {
-        duration: Infinity, // Prevent auto-dismissal
+        duration: Infinity,
       });
       
-      // Set up timeout
       let timeoutId: NodeJS.Timeout | null = setTimeout(() => {
         toast.error('Signature request timed out', { id: toastId, duration: 5000 });
         timeoutId = null;
@@ -211,7 +157,6 @@ export default function KOLRegistrationView() {
       }, 60000);
       
       try {
-        // Request user signature
         const signature = await signTypedDataAsync({
           domain: {
             name: 'Rabita Social Verification',
@@ -246,28 +191,14 @@ export default function KOLRegistrationView() {
           },
         });
 
-        console.debug({
-          walletAddress: accountAddress,
-          platform: 'twitter',
-          username: twitterUsername,
-          salt: signatureData._cryptoMetadata.salt as `0x${string}`,
-          nonce: signatureData._cryptoMetadata.nonce as `0x${string}`,
-          timestamp: BigInt(signatureData._cryptoMetadata.timestamp),
-          domain: signatureData._cryptoMetadata.domain,
-          expiresAt: BigInt(signatureData.expiresAt),
-          signature: signatureData.signature as `0x${string}`,
-          signedMessage: signature,
-        })
-        
-        // Clear timeout
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
-        
-        // Update toast for success
+
         toast.success('Account ownership verified!', { 
           id: toastId,
+          icon: <FiCheckCircle className="text-green-500" size={18} />,
           duration: 3000,
         });
         
@@ -275,13 +206,11 @@ export default function KOLRegistrationView() {
         setOwnershipVerified(true);
         return { signature, messageToSign };
       } catch (error) {
-        // Clear timeout if it exists
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
         
-        // Handle user rejection or error
         const errorMessage = error instanceof Error 
           ? error.message 
           : 'Verification failed';
@@ -300,7 +229,6 @@ export default function KOLRegistrationView() {
       toast.error('Failed to prepare verification. Please try again.');
       return null;
     } finally {
-      // Reset status with slight delay to allow for UI transitions
       setTimeout(() => {
         if (!ownershipVerified) {
           setRegistrationStatus('idle');
@@ -309,11 +237,9 @@ export default function KOLRegistrationView() {
     }
   }, [accountAddress, twitterUsername, twitterName, signatureData, twitterSignature, signTypedDataAsync, registrationStatus, ownershipVerified, toast]);
 
-  // Handle form submission for registration
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate prerequisites
     if (!accountAddress || !RABITA_REGISTRY_ADDRESS) {
       toast.error('Wallet or contract is not available');
       return;
@@ -324,7 +250,7 @@ export default function KOLRegistrationView() {
       return;
     }
 
-    if (!effectiveTwitterHandle) {
+    if (!effectiveSocialHandle) {
       toast.error('X handle is required');
       return;
     }
@@ -334,40 +260,33 @@ export default function KOLRegistrationView() {
       return;
     }
     
-    // Prevent multiple submissions
     if (registrationStatus === 'pending' || registrationStatus === 'signing') {
       return;
     }
     
-    // Create a toast ID for tracking this operation
     const toastId = toast.loading('Preparing registration...', {
       duration: Infinity,
     });
 
-    const { expiresAt, twitterUsername, walletAddress, platform, _cryptoMetadata: { salt, nonce, timestamp, domain } } = signatureData;
+    const { expiresAt, platform, _cryptoMetadata: { salt, nonce, timestamp, domain } } = signatureData;
     
     try {
-      // First verify ownership if not already verified
       let userSignature = userVerifySignature
       if (!ownershipVerified && !userSignature) {
-        // toast.loading('Verifying wallet ownership first...', { id: toastId });
         const verificationResult = await verifyOwnership();
         if (!verificationResult) {
           toast.error('Ownership verification failed. Please try again.', { id: toastId, duration: 5000 });
-          return; // Verification failed
+          return;
         }
         userSignature = verificationResult.signature;
       }
       
-      // Prepare IPFS hash (use provided or empty string if not available)
       const profileIpfsHash = formData.profilePictureIpfsHash.trim() || '';
 
-      // Trigger contract write
       setRegistrationStatus('pending');
       
-      toast.loading('Submitting registration to blockchain...', { id: toastId });
+      // toast.loading('Submitting transaction...', { id: toastId });
       
-      // Set up timeout for transaction
       let timeoutId: NodeJS.Timeout | null = setTimeout(() => {
         toast.error('Transaction submission timed out. The network might be congested.', { 
           id: toastId, 
@@ -375,46 +294,16 @@ export default function KOLRegistrationView() {
         });
         timeoutId = null;
         setRegistrationStatus('error');
-      }, 90000); // 90 second timeout for transaction
+      }, 90000);
 
-      console.debug({
-        effectiveTwitterHandle,
-        effectiveName,
-        profileIpfsHash,
-        fee: formData.fee,
-        userSignature,
-        expiresAt,
-        twitterUsername,
-        walletAddress,
-        platform,
-        salt,
-        nonce,
-      });
-
-      console.debug(
-        platform,
-        effectiveTwitterHandle,
-        effectiveName,
-        parseEther(formData.fee || '0.01'),
-        profileIpfsHash,
-        salt as `0x${string}`,
-        nonce as `0x${string}`,
-        BigInt(timestamp),
-        domain,
-        BigInt(expiresAt),
-        twitterSignature as `0x${string}`,
-        userSignature as `0x${string}`
-      );
-      
       try {
-        // Use writeContractAsync for proper contract interaction
         const hash = await writeContractAsync({
           address: RABITA_REGISTRY_ADDRESS,
           abi: RABITA_REGISTRY_ABI,
           functionName: 'registerKOL',
           args: [
             platform,
-            effectiveTwitterHandle,
+            effectiveSocialHandle,
             effectiveName,
             parseEther(formData.fee || '0.01'),
             profileIpfsHash,
@@ -428,26 +317,20 @@ export default function KOLRegistrationView() {
           ],
         });
         
-        // Clear timeout
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
-        
+
         setTxHash(hash);
-        
-        // Show success toast
-        // toast.success('Transaction submitted!', { id: toastId });
-        
-        // Show transaction hash toast (separate toast)
         toast.success(
           <div>
             <p className="font-medium">Transaction submitted</p>
             <a 
-              href={`https://testnet.bscscan.com/tx/${hash}`} 
+              href={`${appConfig.explorer}/tx/${hash}`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:underline mt-1"
+              className="text-xs text-white hover:underline mt-1"
             >
               View on BscScan
             </a>
@@ -455,123 +338,94 @@ export default function KOLRegistrationView() {
           { duration: 5000 }
         );
         
-        // Update transaction submitted state
         setTransactionSubmitted(true);
-        
-        // Wait for transaction to be confirmed before showing final success message
         setTimeout(() => {
           toast.success('Your KOL profile is being created on the BSC!', {
+            id: toastId,
             icon: '🚀',
             duration: 5000
           });
         }, 1000);
       } catch (error) {
-        // Clear timeout if it exists
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
         
-        console.error('Transaction error:', error);
-        
-        // Extract a clean error message from the error object
         let errorMessage = 'Unknown error occurred';
-        
-        // Handle ContractFunctionExecutionError specifically
         if (error instanceof ContractFunctionExecutionError) {
-          // Extract the meaningful part of the error message
           const errorString = error.message || '';
-          // Look for the actual error message, usually after "execution reverted:"
           const executionRevertedMatch = errorString.match(/execution reverted:([^"]+)/i);
           
           if (executionRevertedMatch && executionRevertedMatch[1]?.trim()) {
-            // Use the extracted message
             errorMessage = executionRevertedMatch[1].trim();
           } else if (errorString.includes('user rejected transaction')) {
             errorMessage = 'You rejected the transaction';
           } else if (errorString.includes('insufficient funds')) {
             errorMessage = 'Insufficient funds for transaction';
           } else {
-            // If we can't extract a specific part, trim the error to a reasonable length
             errorMessage = errorString.length > 100 
               ? errorString.substring(0, 100) + '...' 
               : errorString;
           }
         } else if (error instanceof Error) {
-          // For standard errors, use the message property
           errorMessage = error.message;
-          
-          // Check for common error patterns
           if (errorMessage.includes('user rejected transaction')) {
             errorMessage = 'You rejected the transaction';
           } else if (errorMessage.includes('insufficient funds')) {
             errorMessage = 'Insufficient funds for transaction';
           } else if (errorMessage.length > 100) {
-            // For overly long messages, truncate them
             errorMessage = errorMessage.substring(0, 100) + '...';
           }
         }
-        
-        // Show a more user-friendly error message
         toast.error(`Transaction failed: ${errorMessage}`, { id: toastId, duration: 5000 });
-        
         setRegistrationStatus('error');
       }
     } catch (err) {
-      console.error('Registration error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
       toast.error(errorMessage, { id: toastId, duration: 5000 });
       setRegistrationStatus('error');
     }
-  }, [accountAddress, effectiveTwitterHandle, effectiveName, formData, signatureData, ownershipVerified, verifyOwnership, writeContractAsync, registrationStatus]);
+  }, [accountAddress, effectiveSocialHandle, effectiveName, formData, signatureData, ownershipVerified, verifyOwnership, writeContractAsync, registrationStatus]);
 
-  // Generate signature button handler
   const handleGenerateSignature = useCallback(async () => {
     if (!generateSignature) return;
     
-    // Prevent multiple clicks
     if (isGeneratingSignature) return;
     
-    // Reset failure state and set loading state
     setSignatureGenerationFailed(false);
     setIsGeneratingSignature(true);
     
-    // Show loading toast with a clear ID
     const toastId = toast.loading('Generating verification signature...', {
-      duration: Infinity, // Prevent auto-dismissal
+      duration: Infinity,
     });
     
-    // Set up timeout
     let timeoutId: NodeJS.Timeout | null = setTimeout(() => {
       toast.error('Signature generation timed out. Please try again.', { id: toastId, duration: 5000 });
       timeoutId = null;
       setIsGeneratingSignature(false);
       setSignatureGenerationFailed(true);
-    }, 30000); // 30 second timeout
+    }, 30000);
     
     try {
-      // Generate the signature
       const result = await generateSignature();
 
       if (!result) {
         throw new Error('Signature generation failed');
       }
       
-      // Clear timeout
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
       }
       
       if (result) {
-        // Success case - update toast
         toast.success('Signature successfully generated!', { 
           id: toastId,
           duration: 3000,
         });
         setSignatureGenerationFailed(false);
       } else {
-        // Handle the case where generation returned null but didn't throw
         toast.error('Failed to generate signature. Please try again.', { 
           id: toastId,
           duration: 5000,
@@ -579,17 +433,14 @@ export default function KOLRegistrationView() {
         setSignatureGenerationFailed(true);
       }
     } catch (error) {
-      // Clear timeout if it exists
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
       }
       
-      // Handle any errors, ensuring the toast is updated
       console.error('Error generating signature:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
-      // Update the toast with error information
       toast.error(`Signature generation failed: ${errorMessage}`, { 
         id: toastId,
         duration: 5000,
@@ -598,8 +449,6 @@ export default function KOLRegistrationView() {
       setIsGeneratingSignature(false);
       setSignatureGenerationFailed(true);
     } finally {
-      // Always clear loading state, with a slight delay to allow for UI transitions
-      // Only clear if not already cleared by timeout
       if (timeoutId) {
         setTimeout(() => {
           setIsGeneratingSignature(false);
@@ -608,10 +457,6 @@ export default function KOLRegistrationView() {
     }
   }, [generateSignature, isGeneratingSignature]);
 
-  // Validate prerequisites for registration
-  const canRegister = isConnected && isTwitterVerified && twitterUsername && twitterSignature;
-
-  // If already in success state
   if (registrationStatus === 'success') {
     return (
       <div className="container py-8 lowercase">
@@ -621,6 +466,7 @@ export default function KOLRegistrationView() {
           <p className="text-muted-foreground mb-4 text-primary/80">
             Your KOL profile has been successfully created on the binance smart chain.
           </p>
+          <Loader2 className="animate-spin text-primary text-center mx-auto" size={16} />
           <p className="text-sm text-muted-foreground text-primary/40">
             Redirecting to your profile...
           </p>
@@ -629,7 +475,6 @@ export default function KOLRegistrationView() {
     );
   }
 
-  // Generate the main register button
   const renderRegisterButton = () => {
     if (!isConnected) {
       return <CustomConnect />;
@@ -649,7 +494,6 @@ export default function KOLRegistrationView() {
       );
     }
     
-    // We no longer need the separate signature generation step with NextAuth
     return (
       <button
         type="button"
@@ -665,7 +509,6 @@ export default function KOLRegistrationView() {
   return (
     <div className="container py-8 lowercase">
       <Card className="border-0 shadow-md overflow-hidden shadow-elevation">
-        {/* Header Section */}
         <div className="bg-gradient-to-r from-primary/10 to-primary-dark/5 p-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="shrink-0">
@@ -683,11 +526,10 @@ export default function KOLRegistrationView() {
         </div>
         
         <CardContent className="pt-6">
-          {/* Feature Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="flex flex-col items-center text-center p-4 rounded-lg shadow-elevation bg-background-light">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <FiMessageCircle className="text-primary" size={20} />
+                <RabitaLogo className="text-primary" />
               </div>
               <h3 className="font-medium mb-1 text-foreground">Connect With Followers</h3>
               <p className="text-sm text-muted-foreground text-white">Build deeper relationships with your audience through direct messaging</p>
@@ -695,28 +537,44 @@ export default function KOLRegistrationView() {
             
             <div className="flex flex-col items-center text-center p-4 rounded-lg shadow-elevation bg-background-light">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <FiDollarSign className="text-primary" size={20} />
+                <BNBLogo className="text-primary" size={20} />
               </div>
               <h3 className="font-medium mb-1 text-foreground">Set Custom Fees</h3>
-              <p className="text-sm text-muted-foreground text-white">Determine your own rates for interactions and monetize your influence</p>
+              <p className="text-sm text-muted-foreground text-white">Determine your own rates for interactions and monetize your influence in BNB</p>
             </div>
             
             <div className="flex flex-col items-center text-center p-4 rounded-lg shadow-elevation bg-background-light">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <XLogo className="text-primary" size={20} />
+                <div className="flex items-center justify-center relative">
+                  <div className="absolute -top-4 -left-5 w-5 h-5 bg-black rounded-full flex items-center justify-center animate-[float_3s_ease-in-out_infinite]">
+                    <XLogo className="w-3 h-3 text-primary" size={12} />
+                  </div>
+                  
+                  <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center animate-[float_4s_ease-in-out_0.5s_infinite]">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/>
+                    </svg>
+                  </div>
+                  
+                  <div className="absolute top-0 left-0 w-5 h-5 bg-black rounded-full flex items-center justify-center animate-[float_3.5s_ease-in-out_0.2s_infinite]">
+                    <svg className="w-3 h-3 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                  </div>
+                  
+                  <div className="absolute -bottom-5 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center animate-[float_3.2s_ease-in-out_0.7s_infinite]">
+                    <BNBLogo className="w-3 h-3 text-primary" size={12} />
+                  </div>
+                </div>
               </div>
               <h3 className="font-medium mb-1 text-foreground">Verified Authenticity</h3>
-              <p className="text-sm text-muted-foreground text-white">Link your social media accounts to prove your identity on-chain</p>
+              <p className="text-sm text-muted-foreground text-white">Link any one of your socially active accounts to prove your identity on-chain</p>
             </div>
           </div>
 
-          {/* Connected Accounts Section */}
           <ConnectedAccounts />
-
-          {/* Registration Process Section */}
           <div className="bg-gray-50 p-5 rounded-lg mb-6">
             <h3 className="font-medium mb-3">Registration Process</h3>
-            {/* Registration Steps List */}
             <RegistrationSteps 
               isAuthenticated={isAuthenticated}
               isTwitterVerified={isTwitterVerified}
@@ -732,7 +590,6 @@ export default function KOLRegistrationView() {
           </div>
           
           <div className="pt-4 border-t border-border">
-            {/* Render Register Form or Button */}
             <div className="space-y-6">
               {!formDataVisible && twitterSignature && (
                 <div>
@@ -755,9 +612,9 @@ export default function KOLRegistrationView() {
                             <XLogo size={14} className="text-primary" />
                             your handle
                           </label>
-                          <div className="flex items-center px-3 py-2 bg-white border border-gray-200 rounded-md">
+                          <div className="flex items-center px-3 py-2 bg-white border border-gray-200 rounded-md normal-case">
                             <span className="text-gray-400">@</span>
-                            <span className="ml-1 font-medium text-gray-800">{effectiveTwitterHandle}</span>
+                            <span className="ml-1 font-medium text-gray-800">{effectiveSocialHandle}</span>
                           </div>
                         </div>
                         
@@ -766,15 +623,15 @@ export default function KOLRegistrationView() {
                             <FiUser size={14} className="text-primary" />
                             Display Name
                           </label>
-                          <div className="px-3 py-2 bg-white border border-gray-200 rounded-md">
+                          <div className="px-3 py-2 bg-white border border-gray-200 rounded-md normal-case">
                             <span className="font-medium text-gray-800">{effectiveName}</span>
                           </div>
                         </div>
                       </div>
                       
                       <div className="mt-5 space-y-1.5">
-                        <label htmlFor="messageFee" className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                          <BNBLogo size={20} />
+                        <label htmlFor="messageFee" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 normal-case">
+                          <BNBLogo size={14} className="text-primary" />
                           message fee (BNB)
                         </label>
                         <div className="relative">
@@ -792,13 +649,13 @@ export default function KOLRegistrationView() {
                             aria-describedby="fee-description"
                           />
                           <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                            <span className="text-sm font-medium text-gray-500">BNB</span>
+                            <span className="text-sm font-medium text-gray-500 normal-case">BNB</span>
                           </div>
                         </div>
                         <div className="flex items-start gap-2 mt-1.5" id="fee-description">
                           <FiInfo className="shrink-0 mt-0.5 text-gray-400" size={14} />
-                          <p className="text-xs text-gray-500">
-                            This is the amount users will pay to send you a message. We recommend a reasonable amount (0.01-0.5 BNB) to maximize engagement.
+                          <p className="text-xs text-gray-500 normal-case">
+                            This is the amount users will pay to reach you. We recommend a moderate amount (0.1-1 BNB) to maximize engagement.
                           </p>
                         </div>
                         {parseFloat(formData.fee) <= 0 && (
@@ -809,78 +666,8 @@ export default function KOLRegistrationView() {
                     
                     <ProfileImageUpload 
                       onIpfsHashChange={handleIpfsHashChange}
-                      twitterImageUrl={effectiveProfileImageUrl}
+                      socialImageUrl={effectiveProfileImageUrl}
                     />
-                    
-                    {!ownershipVerified && false && (
-                      <div className="p-5 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
-                        <div className="flex items-start gap-3">
-                          <div className="text-blue-500 mt-1">
-                            <FiShield size={20} />
-                          </div>
-                          <div className="w-full">
-                            <h4 className="text-sm font-medium text-blue-800">Verify Wallet Ownership</h4>
-                            <p className="text-xs text-blue-600 mt-1 mb-3">
-                              To securely link your profile with your social identity, sign a verification message with your wallet.
-                            </p>
-                            
-                            {/* Display X Signature if available */}
-                            {twitterSignature && (
-                              <div className="mb-4 p-3 bg-white rounded border border-blue-200">
-                                <h5 className="text-xs font-medium text-blue-800 flex items-center gap-1.5 mb-1">
-                                  <FiFileText size={12} />
-                                  Identity Verification
-                                </h5>
-                                <p className="text-xs text-blue-700 mb-2">
-                                  Your social identity has been verified through NextAuth. The following signature will be used for on-chain verification:
-                                </p>
-                                <div className="relative">
-                                  <div className="bg-gray-50 p-2 rounded text-xs font-mono text-gray-700 max-h-[80px] overflow-y-auto break-all">
-                                    {twitterSignature?.substring(0, 96)}... 
-                                  </div>
-                                  <button 
-                                    onClick={handleCopySignature}
-                                    className="absolute top-1 right-1 bg-gray-200 hover:bg-gray-300 text-gray-700 p-1 rounded"
-                                    title="Copy signature"
-                                  >
-                                    {copiedSignature ? <FiCheckCircle size={14} /> : <FiCopy size={14} />}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                            
-                            <button
-                              type="button"
-                              onClick={verifyOwnership}
-                              disabled={registrationStatus === 'signing' || !twitterSignature}
-                              className={cn(
-                                "px-4 py-2 rounded-md text-white flex items-center justify-center gap-2 text-sm font-medium transition-all duration-200 text-dark",
-                                registrationStatus === 'signing' 
-                                  ? "bg-primary/70 cursor-not-allowed" 
-                                  : !twitterSignature
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-primary hover:bg-primary-dark active:scale-[0.98]"
-                              )}
-                            >
-                              {registrationStatus === 'signing' ? (
-                                <>
-                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  Waiting for signature...
-                                </>
-                              ) : (
-                                <>
-                                  <FiShield size={16} />
-                                  {twitterSignature ? 'Sign & Verify Wallet Ownership' : 'X verification required'}
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-2">
                       <button
@@ -959,7 +746,7 @@ export default function KOLRegistrationView() {
                         ) : (
                           <>
                             <FiFileText size={14} />
-                            Generate Verification Signature
+                            Generate Signature
                           </>
                         )}
                       </button>

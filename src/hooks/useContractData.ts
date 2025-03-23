@@ -23,8 +23,8 @@ export interface ProfileDataResult {
 // Empty KOL profile for initial state
 const emptyProfile: KOLProfile = {
   wallet: '0x0000000000000000000000000000000000000000' as Address,
-  socialPlatform: '',
-  socialHandle: '',
+  platform: '',
+  handle: '',
   name: '',
   fee: BigInt(0), // Use BigInt() instead of literal 0n for compatibility
   profileIpfsHash: '',
@@ -78,15 +78,15 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
       try {
         const profileData = await contract.read.kolProfiles([address as Address]) as any;
 
-        console.debug('profileData', profileData);
+        // console.debug('profileData', profileData);
         
         // Check if the profile exists and is verified
         const exists = profileData[0] !== '0x0000000000000000000000000000000000000000';
          
         return {
           wallet: profileData[0],
-          socialPlatform: profileData[1],
-          socialHandle: profileData[2],
+          platform: profileData[1],
+          handle: profileData[2],
           name: profileData[3],
           fee: profileData[4],
           profileIpfsHash: profileData[5] !== "" ? profileData[5] : null,
@@ -174,8 +174,8 @@ export function useKOLProfileByHandle(socialHandle?: string): Omit<ProfileDataRe
         
         return {
           wallet: profileData[0],
-          socialPlatform: profileData[1],
-          socialHandle: profileData[2],
+          platform: profileData[1],
+          handle: profileData[2],
           name: profileData[3],
           fee: profileData[4],
           profileIpfsHash: profileData[5],

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, randomBytes } from 'crypto';
-import { cookies } from 'next/headers';
-
-// Interface for secure image token structure
 interface SecureImageToken {
   url: string;
   expires: number;
@@ -24,8 +21,17 @@ export async function GET(request: NextRequest): Promise<Response> {
     const token = searchParams.get('token');
     const isDirectAccess = searchParams.get('direct') === 'true';
 
-    // Secret key for token signing - in production, use a proper environment variable
-    const SECRET_KEY = process.env.IMAGE_PROXY_SECRET || 'rabita-secure-image-proxy-secret-key';
+    // Get secret key from environment variables
+    const SECRET_KEY = process.env.IMAGE_PROXY_SECRET;
+    
+    if (!SECRET_KEY) {
+      return new Response('Server configuration error', {
+        status: 500,
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
+    }
     
     // Validate that an image URL was provided
     if (!imageUrl) {

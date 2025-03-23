@@ -1,5 +1,4 @@
-import { Contact } from './ContactItem';
-import { Message } from './Message';
+import { Message } from './types';
 import { createAvatar } from '@dicebear/core';
 import { identicon } from '@dicebear/collection';
 import { bottts } from '@dicebear/collection';
@@ -113,68 +112,15 @@ export const mockContacts: Contact[] = [
     // }
 ];
 
-// Mock chat history
-export const mockChatHistory: {[key: number]: Message[]} = {
-    1: [
+// Mock chat history with wallet addresses as keys
+export const mockChatHistory: Record<string, Message[]> = {
+    "0x71C7656EC7ab88b098defB751B7401B5f6d8976F": [
         {
             id: 1,
             senderId: 1,
-            text: "Hi there! I just sent you 0.5 ETH for the project. Has it arrived in your wallet?",
-            timestamp: new Date(2023, 3, 10, 9, 30),
-            read: true
-        },
-        {
-            id: 2,
-            senderId: 0, // Current user
-            text: "Yes, I've received it. Transaction confirmed with 15 block confirmations.",
-            timestamp: new Date(2023, 3, 10, 9, 32),
-            delivered: true,
-            read: true
-        },
-        {
-            id: 3,
-            senderId: 1,
-            text: "Great! Can you share the NFT mint address now?",
-            timestamp: new Date(2023, 3, 10, 9, 35),
-            read: true
-        },
-        {
-            id: 4,
-            senderId: 0,
-            text: "Sure, here it is: 0x2c91d908E9fab2cB0436E6EA966A7552cA9EC533. The gas fees are low right now, good time to mint.",
-            timestamp: new Date(2023, 3, 10, 9, 36),
-            delivered: true,
-            read: true
-        },
-        {
-            id: 5,
-            senderId: 1,
-            text: "Perfect. I'll proceed with the mint now. Will let you know once it's done.",
-            timestamp: new Date(2023, 3, 10, 9, 40),
-        }
-    ],
-    2: [
-        {
-            id: 1,
-            senderId: 2,
-            text: "Hey, do you have time to discuss that token swap we talked about?",
-            timestamp: new Date(2023, 3, 9, 14, 20),
-            read: true
-        },
-        {
-            id: 2,
-            senderId: 0,
-            text: "Hi, sure thing. What exchange rate are you thinking of?",
-            timestamp: new Date(2023, 3, 9, 14, 25),
-            delivered: true,
-            read: true
-        },
-        {
-            id: 3,
-            senderId: 2,
-            text: "I was thinking 1 ETH : 1500 of our token. That's slightly better than the current market rate.",
-            timestamp: new Date(2023, 3, 9, 14, 30),
-            read: true
+            text: "Hello! I'm interested in your services.",
+            timestamp: new Date(),
+            delivered: true
         }
     ]
 }; 

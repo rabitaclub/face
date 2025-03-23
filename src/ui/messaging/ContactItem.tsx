@@ -1,23 +1,13 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
-
-export interface Contact {
-    id: number;
-    name: string;
-    avatar: string;
-    walletAddress: string;
-    status: 'online' | 'offline' | 'away';
-    lastMessage?: string;
-    lastMessageTime?: string;
-    unreadCount?: number;
-}
+import { KOLProfile } from '@/types/profile';
+import SecureImage from '@/components/SecureImage';
 
 interface ContactItemProps {
-    contact: Contact;
+    contact: KOLProfile;
     active?: boolean;
-    onClick: (contact: Contact) => void;
+    onClick: (contact: KOLProfile) => void;
 }
 
 // Helper to check if URL is external
@@ -30,33 +20,16 @@ export const ContactItem: React.FC<ContactItemProps> = ({
     active = false, 
     onClick 
 }) => {
-    const statusColorClass = {
-        online: 'bg-green-500',
-        offline: 'bg-gray-400',
-        away: 'bg-yellow-500'
-    }[contact.status];
+    const statusColorClass = 'bg-gray-400';
 
-    // Render avatar image based on URL source
     const renderAvatar = () => {
-        if (isExternalUrl(contact.avatar)) {
-            return (
-                <img 
-                    src={contact.avatar} 
-                    alt={contact.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                />
-            );
-        } else {
-            return (
-                <Image 
-                    src={contact.avatar} 
-                    alt={contact.name} 
-                    width={48} 
-                    height={48} 
-                    className="rounded-full"
-                />
-            );
-        }
+        return (
+            <SecureImage
+                encryptedData={contact.profileIpfsHash || ''}
+                alt={contact.name}
+                className="w-12 h-12 rounded-full object-cover"
+            />
+        );
     };
 
     return (
@@ -71,20 +44,10 @@ export const ContactItem: React.FC<ContactItemProps> = ({
             <div className="flex-grow min-w-0">
                 <div className="flex justify-between items-center">
                     <h3 className="font-medium truncate">{contact.name}</h3>
-                    {contact.lastMessageTime && (
-                        <span className="text-xs text-gray-500">{contact.lastMessageTime}</span>
-                    )}
                 </div>
-                {contact.lastMessage && (
-                    <div className="flex justify-between items-center">
-                        <p className="text-sm text-gray-600 truncate">{contact.lastMessage}</p>
-                        {contact.unreadCount && contact.unreadCount > 0 && (
-                            <span className="bg-blue-500 text-white rounded-full px-2 py-0.5 text-xs ml-2">
-                                {contact.unreadCount}
-                            </span>
-                        )}
-                    </div>
-                )}
+                <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600 truncate">{contact.handle}</p>
+                </div>
             </div>
         </div>
     );

@@ -10,5 +10,6 @@
     },
     "keywords": ["connections", "marketplace", "rabita", "network", "decentralized", "social", "web3", "blockchain", "crypto"],
     "authors": [{ "name": "Robin Rajput", "url": "https://github.com/0xrobinr" }],
-    "creator": "Robin Rajput"
+    "creator": "Robin Rajput",
+    "explorer": "https://testnet.bscscan.com"
 }

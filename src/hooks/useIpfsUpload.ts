@@ -10,10 +10,7 @@ interface UploadOptions {
 }
 
 interface UploadResult {
-  ipfsHash: string;
-  url: string;
   gatewayUrl?: string;
-  filename?: string;
 }
 
 /**
@@ -21,7 +18,7 @@ interface UploadResult {
  */
 export function useIpfsUpload() {
   const [isUploading, setIsUploading] = useState(false);
-  const [ipfsHash, setIpfsHash] = useState<string | null>(null);
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +38,7 @@ export function useIpfsUpload() {
     
     let toastId: string | undefined;
     if (options.autoToast !== false) {
-      toastId = toast.loading('Uploading file to IPFS...');
+      toastId = toast.loading('Uploading...');
     }
     
     try {
@@ -68,17 +65,14 @@ export function useIpfsUpload() {
       
       const data = await response.json();
       
-      if (data.result) {
+      if (data.gatewayUrl) {
         // Process the successful result
-        console.debug('data', data);
+        // console.debug('data', data);
         const result: UploadResult = {
-          ipfsHash: data.result.ipfsHash || data.result,
-          url: data.result.url || `ipfs://${data.result.ipfsHash}`,
-          gatewayUrl: data.gatewayUrl,
-          filename: data.filename || file.name
+          gatewayUrl: data.gatewayUrl
         };
         
-        setIpfsHash(result.ipfsHash);
+        setProfileUrl(result.gatewayUrl || null);
         setUploadResult(result);
         setIsUploading(false);
         
@@ -108,7 +102,7 @@ export function useIpfsUpload() {
    */
   const reset = useCallback(() => {
     setIsUploading(false);
-    setIpfsHash(null);
+    setProfileUrl(null);
     setUploadResult(null);
     setError(null);
   }, []);
@@ -116,7 +110,7 @@ export function useIpfsUpload() {
   return {
     uploadFile,
     isUploading,
-    ipfsHash,
+    profileUrl,
     uploadResult,
     error,
     reset

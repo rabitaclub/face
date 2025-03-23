@@ -34,7 +34,7 @@ export const BNBLogo: React.FC<BNBLogoProps> = ({
       aria-label="BNB logo"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g fill={color}>
+      <g fill="currentColor" className={className}>
         <path d="M38.73 53.2L63.3 28.62l24.59 24.59 14.3-14.3L63.3 0 24.43 38.9l14.3 14.3z" />
         <path d="M38.73 73.41l24.57 24.58 24.59-24.58 14.31 14.29-.02.02L63.3 126.61 24.43 87.72l.02-.02 14.28-14.29z" />
         <path d="M48.14 63.3l15.16-15.16 15.18 15.16-15.18 15.17-15.16-15.17z" />

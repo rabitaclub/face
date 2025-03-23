@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, ExternalLink, X } from 'lucide-react';
-import { Contact } from './ContactItem';
-import { Message, ChatMessage } from './Message';
-import Image from 'next/image';
+import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, ExternalLink, X, Share2 } from 'lucide-react';
+import { KOLProfile } from '@/types/profile';
+import { Message } from './types';
+import SecureImage from '@/components/SecureImage';
 
 interface ChatPanelProps {
-    contact: Contact;
+    contact: KOLProfile;
     messages: Message[];
     newMessage: string;
     isLoading: boolean;
@@ -16,6 +16,7 @@ interface ChatPanelProps {
     onClose: () => void;
     onMessageChange: (message: string) => void;
     onSendMessage: () => void;
+    onShare: () => void;
 }
 
 // Helper to check if URL is external
@@ -33,10 +34,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     onClose,
     onMessageChange,
     onSendMessage,
+    onShare,
 }) => {
     // Refs for scrolling to the bottom when messages change
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [copyTooltip, setCopyTooltip] = useState<string>('Copy Address');
+    const [copyTooltip, setCopyTooltip] = useState<string>('Copy');
     
     // Scroll to bottom when messages change
     const scrollToBottom = useCallback(() => {
@@ -57,39 +59,22 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         }
     };
     
-    // Render avatar image based on URL source
     const renderAvatar = () => {
-        if (isExternalUrl(contact.avatar)) {
-            return (
-                <img
-                    src={contact.avatar}
-                    alt={contact.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                />
-            );
-        } else {
-            return (
-                <Image
-                    src={contact.avatar}
-                    alt={contact.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full object-cover"
-                />
-            );
-        }
+        return (
+            <SecureImage
+                encryptedData={contact.profileIpfsHash || ''}
+                alt={contact.name}
+                className="w-10 h-10 rounded-full object-cover"
+                width={40}
+                height={40}
+            />
+        );
     };
     
-    // Copy wallet address to clipboard
     const copyWalletAddress = () => {
-        navigator.clipboard.writeText(contact.walletAddress);
+        navigator.clipboard.writeText(contact.wallet);
         setCopyTooltip('Copied!');
         setTimeout(() => setCopyTooltip('Copy Address'), 2000);
-    };
-    
-    // View wallet on blockchain explorer
-    const viewOnExplorer = () => {
-        window.open(`https://etherscan.io/address/${contact.walletAddress}`, '_blank');
     };
     
     return (
@@ -114,19 +99,25 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                         <div className="flex items-center">
                             <div className="relative">
                                 {renderAvatar()}
-                                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                                    contact.status === 'online' ? 'bg-green-500' : 
-                                    contact.status === 'away' ? 'bg-yellow-500' : 'bg-gray-400'
-                                }`}></div>
+                                <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white bg-gray-400"></div>
                             </div>
                             <div className="ml-3">
                                 <h2 className="font-semibold text-gray-900">{contact.name}</h2>
-                                <span className="text-xs text-gray-500 capitalize">{contact.status}</span>
+                                <span className="text-xs text-gray-500">{contact.handle}</span>
                             </div>
                         </div>
                     </div>
-                    <div className="flex">
-                        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200">
+                    <div className="flex items-center">
+                        <button 
+                            onClick={onShare}
+                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200 relative group"
+                        >
+                            <Share2 size={18} />
+                            <span className="absolute whitespace-nowrap right-0 top-full mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                Share conversation
+                            </span>
+                        </button>
+                        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200">
                             <Paperclip size={18} />
                         </button>
                         <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200">
@@ -149,7 +140,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 
                 {/* Wallet address information */}
                 <div className="px-4 pb-3 flex items-center text-xs text-gray-500 bg-gray-50">
-                    <div className="flex-1 truncate font-mono">{contact.walletAddress}</div>
+                    <div className="flex-1 truncate font-mono">{contact.wallet.slice(0, 6)}...{contact.wallet.slice(-6)}</div>
                     <div className="flex ml-2">
                         <button 
                             className="p-1 hover:text-blue-500 relative group transition-colors duration-200" 
@@ -160,67 +151,53 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                                 {copyTooltip}
                             </span>
                         </button>
-                        <button 
-                            className="p-1 hover:text-blue-500 ml-1 relative group transition-colors duration-200"
-                            onClick={viewOnExplorer}
-                        >
-                            <ExternalLink size={14} />
-                            <span className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                View on Explorer
-                            </span>
-                        </button>
                     </div>
                 </div>
             </div>
             
             {/* Chat messages */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-                {isLoading ? (
-                    <div className="flex justify-center items-center h-full">
-                        <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+            <div className="flex-1 overflow-y-auto p-4">
+                {messages.map(message => (
+                    <div
+                        key={message.id}
+                        className={`mb-4 flex ${
+                            message.senderId === 1 ? 'justify-end' : 'justify-start'
+                        }`}
+                    >
+                        <div
+                            className={`max-w-[70%] rounded-lg p-3 ${
+                                message.senderId === 1
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-gray-100 text-gray-900'
+                            }`}
+                        >
+                            <p className="text-sm">{message.text}</p>
+                            <span className="text-xs opacity-75 mt-1 block">
+                                {message.timestamp.toLocaleTimeString()}
+                            </span>
+                        </div>
                     </div>
-                ) : messages.length > 0 ? (
-                    messages.map((message) => (
-                        <ChatMessage
-                            key={message.id}
-                            message={message}
-                            isMine={message.senderId === 0}
-                            senderAvatar={message.senderId !== 0 ? contact.avatar : undefined}
-                        />
-                    ))
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                        <p>No messages yet</p>
-                        <p className="text-sm">Send a message to start the conversation</p>
-                    </div>
-                )}
+                ))}
                 <div ref={messagesEndRef} />
             </div>
             
             {/* Message input */}
-            <div className="p-4 border-t border-gray-200">
-                <div className="flex items-end">
+            <div className="border-t border-gray-200 p-4">
+                <div className="flex items-center">
                     <textarea
                         value={newMessage}
                         onChange={(e) => onMessageChange(e.target.value)}
-                        onKeyDown={handleKeyPress}
+                        onKeyPress={handleKeyPress}
                         placeholder="Type a message..."
-                        className={`flex-1 resize-none border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors duration-200 ${
-                            isLoading ? 'bg-gray-100' : ''
-                        }`}
-                        disabled={isLoading}
+                        className="flex-1 resize-none rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={1}
-                    ></textarea>
+                    />
                     <button
                         onClick={onSendMessage}
                         disabled={!newMessage.trim() || isLoading}
-                        className={`ml-2 p-3 rounded-full focus:outline-none transition-colors duration-200 ${
-                            newMessage.trim() && !isLoading
-                                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        }`}
+                        className="ml-2 rounded-full bg-blue-500 p-2 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Send size={18} />
+                        <Send size={20} />
                     </button>
                 </div>
             </div>

@@ -9,14 +9,14 @@ import { Address } from "viem";
  */
 export interface KOLProfile {
   wallet: Address;
-  socialPlatform: string;
-  socialHandle: string;
+  platform: string;
+  handle: string;
   name: string;
   fee: bigint;
   profileIpfsHash: string | null;
   verified: boolean;
-  exists: boolean; // Added for easier checking if profile exists
-  formattedFee?: string;  // Formatted as BNB string with decimals
+  exists: boolean;
+  formattedFee?: string;
 }
 
 /**

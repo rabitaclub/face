@@ -1,9 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
-import Image from 'next/image';
 import { toast } from 'react-hot-toast';
 import { KOLProfile } from '@/types/profile';
+import SecureImage from '@/components/SecureImage';
 
 interface SettingsTabProps {
   profile: KOLProfile;
@@ -23,11 +23,12 @@ export function SettingsTab({ profile }: SettingsTabProps) {
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
                 {profile.profileIpfsHash ? (
-                  <Image 
-                    src={`https://ipfs.io/ipfs/${profile.profileIpfsHash}`}
-                    alt={profile.socialHandle} 
-                    fill
-                    className="object-cover"
+                  <SecureImage 
+                    encryptedData={profile.profileIpfsHash}
+                    alt={profile.socialHandle}
+                    width={64}
+                    height={64}
+                    className="rounded-full"
                   />
                 ) : (
                   <div className="h-full w-full bg-primary/20 flex items-center justify-center text-xl text-primary font-medium">

@@ -1,0 +1,1 @@
+export const registryGraphURL = process.env.REGISTRY_GRAPH_URL

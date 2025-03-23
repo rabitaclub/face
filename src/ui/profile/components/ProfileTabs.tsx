@@ -18,19 +18,19 @@ export function ProfileTabs({ profile, metrics }: ProfileTabsProps) {
             value="messages" 
             className="data-[state=inactive]:text-white/40 transition-colors duration-200"
           >
-            Messages
+            messages
           </TabsTrigger>
           <TabsTrigger 
             value="earnings" 
             className="data-[state=inactive]:text-white/40 transition-colors duration-200"
           >
-            Earnings
+            earnings
           </TabsTrigger>
           <TabsTrigger 
             value="settings" 
             className="data-[state=inactive]:text-white/40 transition-colors duration-200"
           >
-            Settings
+            settings
           </TabsTrigger>
         </TabsList>
         

@@ -1,8 +1,9 @@
 'use client';
 
-import { FiCheck, FiTwitter, FiLock, FiDollarSign, FiShield, FiCheckCircle, FiFileText } from 'react-icons/fi';
+import { FiCheck, FiLock, FiDollarSign, FiShield, FiCheckCircle, FiFileText, FiCopy } from 'react-icons/fi';
 import { cn } from '@/utils/cn';
 import XLogo from '../icons/XLogo';
+import BNBLogo from '../icons/BNBLogo';
 
 interface RegistrationStepsProps {
   isAuthenticated: boolean;
@@ -17,10 +18,6 @@ interface RegistrationStepsProps {
   signatureGenerationFailed?: boolean;
 }
 
-/**
- * Modern component that displays the registration steps with visual connection lines and status indicators
- * Integrated with NextAuth for X authentication and signature handling
- */
 export default function RegistrationSteps({
   isAuthenticated,
   isTwitterVerified,
@@ -33,12 +30,11 @@ export default function RegistrationSteps({
   isGeneratingSignature = false,
   signatureGenerationFailed = false
 }: RegistrationStepsProps) {
-  // Define the steps dynamically with their properties, removing separate signature generation
   const steps = [
     {
       id: 1,
       title: "Connect Socially",
-      description: "Connect your X account via NextAuth for secure verification",
+      description: "Connect your account via NextAuth for secure verification",
       completed: isAuthenticated,
       available: true,
       icon: XLogo
@@ -46,7 +42,7 @@ export default function RegistrationSteps({
     {
       id: 2,
       title: "Verify Social Identity",
-      description: "Confirm your social identity through X verification",
+      description: "Confirm your social identity through verifier signature generation",
       completed: isTwitterVerified,
       available: isAuthenticated,
       icon: FiLock
@@ -54,10 +50,10 @@ export default function RegistrationSteps({
     {
       id: 3,
       title: "Configure Profile",
-      description: "Set your messaging fee and customize your profile details",
+      description: "Set your messaging fee and customize your profile details (optional)",
       completed: formDataVisible && hasSetFee,
       available: isTwitterVerified,
-      icon: FiDollarSign
+      icon: BNBLogo
     },
     {
       id: 4,
@@ -77,13 +73,11 @@ export default function RegistrationSteps({
     }
   ];
 
-  // Count total completed steps for animation
   const completedSteps = steps.filter(step => step.completed).length;
   const completionPercentage = (completedSteps / steps.length) * 100;
 
   return (
     <div className="pb-2 lowercase">
-      {/* Progress bar that animates based on completion */}
       <div className="mb-6 relative">
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
           <div 
@@ -118,19 +112,15 @@ export default function RegistrationSteps({
           ))}
         </div>
       </div>
-
-      {/* Step details with connected timeline */}
       <div className="space-y-0 relative">
-        {/* Vertical connecting line */}
         <div className="absolute left-[17px] top-6 bottom-6 w-[2px] bg-gray-200 z-0"></div>
-        
         {steps.map((step) => (
           <div key={step.id} className="relative z-10 pl-9 py-2">
             <div 
               className={cn(
                 "absolute left-0 top-1.5 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300",
                 step.completed
-                  ? "bg-primary text-white shadow-sm" 
+                  ? "bg-primary text-dark shadow-sm" 
                   : step.available
                     ? "bg-white border-2 border-primary text-primary" 
                     : "bg-gray-100 border-2 border-gray-200 text-gray-400"
@@ -141,13 +131,13 @@ export default function RegistrationSteps({
             
             <div className={cn(
               "transition-colors duration-300",
-              step.completed ? "text-primary" : step.available ? "text-gray-900" : "text-gray-400"
+              step.completed ? "text-dark" : step.available ? "text-gray-900" : "text-gray-400"
             )}>
               <h4 className="font-medium text-sm flex ml-2 items-center gap-2">
                 {step.title}
                 {step.completed && (
-                  <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                    <FiCheck size={10} className="mr-1" /> Complete
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
+                    <FiCheck size={10} />
                   </span>
                 )}
               </h4>
@@ -157,8 +147,22 @@ export default function RegistrationSteps({
               )}>
                 {step.description}
               </p>
-              
-              {/* Show signature generation button for step 2 when X is verified but signature is missing */}
+              {step.id === 2 && signature && (
+                <div className="mt-2 mb-2 p-3 bg-white rounded border border-blue-200">
+                  <h5 className="text-xs font-medium text-blue-800 flex items-center gap-1.5 mb-1">
+                    <FiFileText size={12} />
+                    Identity Verification
+                  </h5>
+                  <p className="text-xs text-blue-700 mb-2">
+                    Your social identity has been verified through NextAuth. The following signature will be used for on-chain verification:
+                  </p>
+                  <div className="relative">
+                    <div className="bg-gray-50 p-2 rounded text-xs font-mono text-gray-700 max-h-[80px] overflow-y-auto break-all">
+                      {signature?.substring(0, 96)}... 
+                    </div>
+                  </div>
+                </div>
+              )} 
               {step.id === 2 && isTwitterVerified && !signature && onGenerateSignature && (
                 <button
                   onClick={onGenerateSignature}

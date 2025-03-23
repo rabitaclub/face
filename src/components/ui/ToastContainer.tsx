@@ -33,6 +33,7 @@ export function ToastContainer({ className }: ToastContainerProps) {
           '!border-l-4', // Left border for visual hierarchy
           'animate-toast-enter',
           'data-[state=closed]:animate-toast-exit',
+          '!text-sm', // Make text size small
         ),
         // Success toast specific styles
         success: {
@@ -40,6 +41,7 @@ export function ToastContainer({ className }: ToastContainerProps) {
             '!border-l-success',
             '!bg-background',
             '!text-foreground',
+            '!text-sm', // Make text size small
           ),
           iconTheme: {
             primary: 'var(--color-success)',
@@ -52,6 +54,7 @@ export function ToastContainer({ className }: ToastContainerProps) {
             '!border-l-error',
             '!bg-background',
             '!text-foreground',
+            '!text-sm', // Make text size small
           ),
           iconTheme: {
             primary: 'var(--color-error)',
@@ -64,6 +67,7 @@ export function ToastContainer({ className }: ToastContainerProps) {
             '!border-l-primary',
             '!bg-background',
             '!text-foreground',
+            '!text-sm', // Make text size small
           ),
           iconTheme: {
             primary: 'var(--primary)',
@@ -75,6 +79,7 @@ export function ToastContainer({ className }: ToastContainerProps) {
         // Custom animation styles
         style: {
           animation: `toast-slide-in-right ${themeConfig.animation.default.stiffness}ms ease-out`,
+          fontSize: 'small', // Additional small text size in inline style
         },
       }}
     />

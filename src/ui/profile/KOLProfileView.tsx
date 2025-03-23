@@ -11,9 +11,6 @@ interface KOLProfileViewProps {
   metrics: Metrics;
 }
 
-/**
- * Displays the registered KOL profile with metrics and tabs for messages, earnings, settings
- */
 export default function KOLProfileView({ profile, metrics }: KOLProfileViewProps) {
   return (
     <div className="container py-8">

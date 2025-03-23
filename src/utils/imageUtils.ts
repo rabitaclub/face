@@ -1,10 +1,18 @@
 'use client';
 
 import { createHash } from 'crypto';
+import { ethers } from 'ethers';
 
 interface SecureImageToken {
   url: string;
   expires: number;
+  signature: string;
+}
+
+interface EncryptedImageData {
+  url: string;
+  ipfsHash: string;
+  timestamp: number;
   signature: string;
 }
 
@@ -100,52 +108,6 @@ export async function compressImage(
   });
 }
 
-/**
- * Generates a secure hash of a file's contents
- * 
- * @param file - The file to hash
- * @returns A promise that resolves to a hexadecimal hash string
- */
-export async function generateFileHash(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = async (event) => {
-      try {
-        // Get the file buffer
-        const buffer = event.target?.result;
-        
-        if (!buffer) {
-          throw new Error('Could not read file');
-        }
-        
-        // Generate SHA-256 hash of the file
-        const hashBuffer = await crypto.subtle.digest(
-          'SHA-256',
-          buffer as ArrayBuffer
-        );
-        
-        // Convert hash to hex string
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('');
-        
-        resolve(hashHex);
-      } catch (err) {
-        reject(err instanceof Error ? err : new Error('Failed to generate file hash'));
-      }
-    };
-    
-    reader.onerror = () => {
-      reject(new Error('Could not read file'));
-    };
-    
-    // Read the file as an array buffer
-    reader.readAsArrayBuffer(file);
-  });
-}
-
 export function generateSecureImageToken(imageUrl: string, expiresInMinutes = 30): string {
   const expires = Math.floor(Date.now() / 1000) + (expiresInMinutes * 60);
   const data = `${imageUrl}|${expires}`;
@@ -160,4 +122,4 @@ export function generateSecureImageToken(imageUrl: string, expiresInMinutes = 30
   };
 
   return Buffer.from(JSON.stringify(token)).toString('base64');
-} 
+}
