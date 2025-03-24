@@ -104,11 +104,11 @@ body {
 }
 
 /* Mobile padding adjustment for bottom navigation */
-@media (max-width: 1024px) {
+/* @media (max-width: 1024px) {
   main {
     padding-bottom: calc(var(--bottom-nav-height) + 1rem);
   }
-}
+} */
 
 .sidebar-container {
   width: var(--sidebar-width);

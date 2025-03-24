@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNavigation from "./BottomNavigation";
-import { themeConfig } from "@/config/theme.config";
 import { useActiveWallet } from "@/hooks/useActiveWallet";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -26,12 +24,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen font-sans bg-[var(--background)]">
       <div 
         className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
-        style={{ 
-          paddingBottom: isConnected && isMobile ? themeConfig.navigation.bottomNavHeight : '0'
-        }}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 pt-6">
+        <main className="flex-1 overflow-y-auto p-4 pt-6" style={
+          {
+            paddingBottom: isConnected && isMobile ? 'calc(var(--bottom-nav-height) + 1rem)' : '16px'
+          }
+        }>
           {children}
         </main>
       </div>

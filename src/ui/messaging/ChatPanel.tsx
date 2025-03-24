@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, ExternalLink, X, Share2 } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, X, Share2, Maximize2, Minimize2 } from 'lucide-react';
 import { KOLProfile } from '@/types/profile';
 import { Message } from './types';
 import SecureImage from '@/components/SecureImage';
+import { cn } from '@/lib/utils';
 
 interface ChatPanelProps {
     contact: KOLProfile;
@@ -39,6 +40,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     // Refs for scrolling to the bottom when messages change
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [copyTooltip, setCopyTooltip] = useState<string>('Copy');
+    const [isMaximized, setIsMaximized] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     
     // Scroll to bottom when messages change
     const scrollToBottom = useCallback(() => {
@@ -76,13 +79,45 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         setCopyTooltip('Copied!');
         setTimeout(() => setCopyTooltip('Copy Address'), 2000);
     };
+
+    const toggleMaximize = useCallback(() => {
+        setIsTransitioning(true);
+        setIsMaximized(prev => !prev);
+        
+        // Handle body scroll lock
+        if (!isMaximized) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        // Reset transition state after animation
+        setTimeout(() => {
+            setIsTransitioning(false);
+        }, 300);
+    }, [isMaximized]);
+
+    // Cleanup body scroll lock on unmount
+    useEffect(() => {
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, []);
     
     return (
         <div
-            className={`h-full bg-white flex flex-col ${
-                isMobile ? 'z-10' : 'relative'
-            }`}
-            style={{ width }}
+            className={cn(
+                "h-full bg-white flex flex-col transition-all duration-300 ease-in-out",
+                isMobile ? 'z-10' : 'relative',
+                isMaximized && "fixed inset-0 z-50",
+                isTransitioning && "pointer-events-none"
+            )}
+            style={{ 
+                width: isMaximized ? '100vw' : width,
+                height: isMaximized ? '100vh' : '100%',
+                transform: isMaximized ? 'translate(0, 0)' : 'none',
+                opacity: isTransitioning ? 0.8 : 1
+            }}
         >
             {/* Chat header */}
             <div className="flex flex-col border-b border-gray-200">
@@ -122,6 +157,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                         </button>
                         <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200">
                             <MoreVertical size={18} />
+                        </button>
+                        <button
+                            onClick={toggleMaximize}
+                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200 relative group"
+                            aria-label={isMaximized ? "Minimize chat" : "Maximize chat"}
+                        >
+                            {isMaximized ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                            <span className="absolute whitespace-nowrap right-0 top-full mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                {isMaximized ? "Minimize chat" : "Maximize chat"}
+                            </span>
                         </button>
                         {!isMobile && (
                             <button 
@@ -182,7 +227,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
             
             {/* Message input */}
-            <div className="border-t border-gray-200 p-4">
+            <div className="p-4 border-t border-gray-200">
                 <div className="flex items-center">
                     <textarea
                         value={newMessage}

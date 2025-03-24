@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { toast } from 'react-hot-toast';
 import { KOLProfile } from '@/types/profile';
-
+import appConfig from '@/config/app.config.json';
 interface MessagesTabProps {
   profile: KOLProfile;
 }
@@ -17,7 +17,7 @@ export function MessagesTab({ profile }: MessagesTabProps) {
         variant="outline"
         className='bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200' 
         onClick={() => {
-          navigator.clipboard.writeText(`https://rabita.club/message/${profile.wallet}`);
+          navigator.clipboard.writeText(`${appConfig.url}/message/${profile.wallet}`);
           toast.success('Profile link copied to clipboard!');
         }}
       >

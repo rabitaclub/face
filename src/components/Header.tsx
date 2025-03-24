@@ -40,7 +40,7 @@ export default function Header() {
         <nav className="hidden md:flex justify-center mt-3 space-x-6 w-full">
           <div className="flex space-x-6">
             {NavItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.split('/')[1] == item.href.split('/')[1];
 
               return (
                 <div key={item.href}>
