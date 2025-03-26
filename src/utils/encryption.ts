@@ -1,7 +1,6 @@
-import { keccak256, toBytes, toHex } from 'viem';
-import { Buffer } from 'buffer';
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import EthCrypto, { Encrypted } from 'eth-crypto';
+import { keccak256 } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import EthCrypto from 'eth-crypto';
 
 export interface EncryptionParams {
   message: string;
@@ -59,10 +58,7 @@ export const decryptMessage = async (
 
 export const generateAsymmetricKeys = async (signature: string): Promise<EncryptionResult> => {
   try {
-    // Use the signature to derive a deterministic private key
     const privateKey = keccak256(signature as `0x${string}`);
-    console.debug(signature)
-    console.debug(privateKey)
     const account = privateKeyToAccount(privateKey);
     
     return {
