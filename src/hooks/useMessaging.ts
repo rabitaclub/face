@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useSignTypedData } from 'wagmi';
 import { generateAsymmetricKeys, encryptMessage, decryptMessage } from '@/utils/encryption';
 import { storePrivateKey, retrievePrivateKey, removePrivateKey } from '@/utils/secureStorage';
+import { useQuery } from '@tanstack/react-query';
 
 interface UseMessagingReturn {
   privateKey: string | null;
@@ -10,7 +11,7 @@ interface UseMessagingReturn {
   isInitialized: boolean;
   isLoading: boolean;
   error: string | null;
-  generateKeys: () => Promise<void>;
+  generateKeys: () => Promise<{ privateKey: string, publicKey: string }>;
   encryptMessage: (message: string, recipientPublicKey: string) => Promise<string>;
   decryptMessage: (encryptedMessage: string) => Promise<string>;
   clearKeys: () => void;
@@ -26,6 +27,13 @@ export function useMessaging(): UseMessagingReturn {
 
   const { address } = useAccount();
   const { signTypedDataAsync } = useSignTypedData();
+
+  // Clear keys when address changes
+  useEffect(() => {
+    if (isInitialized) {
+      clearKeys();
+    }
+  }, [address]);
 
   const checkExistingKeys = useCallback(async (): Promise<boolean> => {
     if (!address) return false;
@@ -51,10 +59,10 @@ export function useMessaging(): UseMessagingReturn {
     }
   }, [address, signTypedDataAsync]);
 
-  const generateKeys = useCallback(async () => {
+  const generateKeys = useCallback(async (): Promise<{ privateKey: string, publicKey: string }> => {
     if (!address) {
       setError('Wallet not connected');
-      return;
+      return { privateKey: '', publicKey: '' };
     }
 
     try {
@@ -87,12 +95,18 @@ export function useMessaging(): UseMessagingReturn {
 
       const keys = await generateAsymmetricKeys(signature);
       await storePrivateKey(signature, address);
+
+      console.log(keys)
       
       setPrivateKey(keys.privateKey);
       setPublicKey(keys.publicKey);
       setIsInitialized(true);
+
+      return { privateKey: keys.privateKey, publicKey: keys.publicKey };
     } catch (err) {
+      console.error(err)
       setError(err instanceof Error ? err.message : 'Failed to generate keys');
+      return { privateKey: '', publicKey: '' };
     } finally {
       setIsLoading(false);
     }
@@ -131,4 +145,25 @@ export function useMessaging(): UseMessagingReturn {
     clearKeys,
     checkExistingKeys,
   };
-} 
+}
+
+const getMessage = async (ipfsHash: string) => {
+  const response = await fetch(ipfsHash);
+  return await response.json();
+};
+
+export const useMessage = (ipfsHash: string) => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['message', ipfsHash],
+    queryFn: () => getMessage(ipfsHash),
+    staleTime: 1000 * 5,
+    refetchInterval: 1000 * 5,
+  });
+
+  return {
+    data,
+    isLoading,
+    error,
+  };
+};
+

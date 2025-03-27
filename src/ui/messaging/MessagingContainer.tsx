@@ -16,7 +16,7 @@ import { MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagingSkeleton } from './components/MessagingSkeleton';
 import { useIsClient } from '@/hooks/useIsClient';
-
+import { Address } from 'viem';
 interface MessagingContainerProps {
     initialKolAddress?: `0x${string}`;
 }
@@ -50,23 +50,19 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
     const router = useRouter();
 
     const {
-        searchQuery,
-        setSearchQuery,
         filteredContacts
     } = useContacts();
-
     const {
         chatMessages,
         newMessage,
         setNewMessage,
         isLoading,
         selectedContact,
-        isPanelClosing,
         handleContactClick: originalHandleContactClick,
         closeChat,
         handleSendMessage,
         shareConversationLink
-    } = useChat({ initialMessages: mockChatHistory });
+    } = useChat();
 
     const { profile: kolProfile, isLoading: isKolLoading } = useKOLProfileData(initialKolAddress);
 
@@ -76,7 +72,6 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         handleResizePanel,
         calculateWidths,
         initializeLayout,
-        handlePanelClose,
         layoutMetrics,
         isClient: isLayoutClient
     } = useResponsiveLayout({
@@ -86,11 +81,8 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         defaultMobileBreakpoint: 768
     });
 
-    // Handle initialization
     useEffect(() => {
         if (!isClient) return;
-        
-        // Add a small delay to ensure smooth transition from skeleton
         const timer = setTimeout(() => {
             setIsInitializing(false);
         }, 500);
@@ -98,11 +90,11 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         return () => clearTimeout(timer);
     }, [isClient]);
 
-    const handleContactClick = useCallback((contact: KOLProfile) => {
+    const handleContactClick = useCallback((contact: Address) => {
         if (!isClient) return;
         setIsRouteChanging(true);
         setHasHistory(true);
-        router.push(`/messages/${contact.wallet}`, { scroll: false });
+        router.push(`/messages/${contact}`, { scroll: false });
     }, [router, isClient]);
 
     const handleCloseChat = useCallback(() => {
@@ -161,10 +153,9 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         handleResizePanel({ width: newWidth, height: 0 });
     }, [handleResizePanel, isClient]);
 
-    // Show skeleton during initialization or SSR
     if (!isClient || isInitializing) {
         return (
-            <div className="h-screen flex flex-col">
+            <div className="h-[calc(100vh-var(--bottom-nav-height))] flex flex-col">
                 <div className="shadow-sm py-4 px-6">
                     <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
                     <div className="h-4 w-32 bg-gray-200 rounded mt-2 animate-pulse" />
@@ -175,8 +166,8 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
     }
 
     return (
-        <div className="h-screen flex flex-col">
-            <div className="shadow-sm py-4 px-6">
+        <div className="h-[calc(100vh-var(--bottom-nav-height))] flex flex-col overflow-hidden">
+            <div className="flex-none shadow-sm py-4 px-6">
                 <h1 className="text-2xl font-bold text-gray-800">connections marketplace</h1>
                 <p className="text-gray-500">connect with KOLs securely</p>
             </div>
@@ -189,10 +180,9 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                     isChatMaximized && "fixed inset-0 z-40"
                 )}
             >
-                {/* Contact list container */}
                 <div 
                     className={cn(
-                        "h-full border-r border-gray-200",
+                        "h-full border-r border-gray-200 overflow-hidden",
                         isMobile && "w-full",
                         layoutMetrics.isResizing && "pointer-events-none",
                         isChatMaximized && "hidden"
@@ -205,14 +195,11 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                     <ContactList 
                         contacts={filteredContacts}
                         selectedContactId={selectedContact?.wallet}
-                        searchQuery={searchQuery}
-                        onSearchChange={setSearchQuery}
                         onContactSelect={handleContactClick}
                         width="100%"
                     />
                 </div>
                 
-                {/* Resize handle - only visible in desktop view */}
                 {!isMobile && !layoutMetrics.isPanelClosing && !isChatMaximized && (
                     <ResizeHandle 
                         containerWidth={chatPanelPixelWidth}
@@ -226,10 +213,9 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                     />
                 )}
                 
-                {/* Chat panel */}
                 <div 
                     className={cn(
-                        "h-full bg-gray-50",
+                        "h-full bg-gray-50 overflow-hidden",
                         isMobile && "fixed inset-0 z-50",
                         layoutMetrics.isResizing && "pointer-events-none",
                         isChatMaximized && "fixed inset-0 z-50"

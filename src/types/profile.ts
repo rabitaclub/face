@@ -17,6 +17,10 @@ export interface KOLProfile {
   verified: boolean;
   exists: boolean;
   formattedFee?: string;
+  pgpKey?: {
+    publicKey: string;
+    pgpNonce: string;
+  };
 }
 
 /**

@@ -32,7 +32,7 @@ export const encryptMessage = async (
     const encryptedMessage = await EthCrypto.encryptWithPublicKey(publicKey.slice(2, publicKey.length), message);
     console.debug(encryptedMessage)
 
-    return JSON.stringify(encryptedMessage);
+    return JSON.stringify(encryptedMessage, null, 2);
   } catch (error) {
     console.error('Error in encryptMessage:', error);
     throw error;

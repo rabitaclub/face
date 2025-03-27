@@ -6,34 +6,12 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { KolListItem } from './KolListItem';
 import { KOLProfile } from '@/types/profile';
 import { useGraphQuery } from '@/hooks/useGraphQuery';
-import { gql } from '@/lib/fetchGraphData';
-
-// Define the GraphQL query for KOL search
-const KOL_SEARCH_QUERY = gql`
-  query SearchKols($searchTerm: String!) {
-    kolregistereds(
-      where: { 
-        or: [
-          { handle_contains_nocase: $searchTerm },
-          { name_contains_nocase: $searchTerm }
-        ]
-      },
-      first: 20,
-      orderBy: name
-    ) {
-      wallet
-      platform
-      handle
-      name
-      fee
-    }
-  }
-`;
-
+import { KOL_SEARCH_QUERY } from '@/config/graph.queries';
+import { Address } from 'viem';
 interface KolSearchBarProps {
     className?: string;
     placeholderText?: string;
-    onProfileSelect?: (profile: KOLProfile) => void;
+    onProfileSelect?: (profile: Address) => void;
 }
 
 export default function KolSearchBar({ 

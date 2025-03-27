@@ -25,8 +25,11 @@ import appConfig from '@/config/app.config.json';
 import RABITA_REGISTRY_ABI from '@/config/rabita.abi.json';
 import { Loader2 } from 'lucide-react';
 import RabitaLogo from '../icons/RabitaLogo';
+import { useMessaging } from '@/hooks/useMessaging';
+import { env } from '@/config/env';
 
-const RABITA_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_RABITA_REGISTRY_ADDRESS as Address;
+const RABITA_REGISTRY_ADDRESS = env.RABITA_REGISTRY_ADDRESS as Address;
+
 type RegistrationStatus = 'idle' | 'signing' | 'pending' | 'success' | 'error';
 
 interface RegistrationFormData {
@@ -47,6 +50,8 @@ export default function KOLRegistrationView() {
     generateSignature,
     disconnectTwitter
   } = useTwitterVerification();
+
+  const { generateKeys } = useMessaging()
 
   const { address: accountAddress } = useAccount();
   const [formDataVisible, setFormDataVisible] = useState(false);
@@ -269,6 +274,13 @@ export default function KOLRegistrationView() {
     });
 
     const { expiresAt, platform, _cryptoMetadata: { salt, nonce, timestamp, domain } } = signatureData;
+
+    const { publicKey } = await generateKeys()
+
+    if (!publicKey) {
+      toast.error('Failed to generate PGP keys. Please try again.', { id: toastId, duration: 5000 });
+      return;
+    }
     
     try {
       let userSignature = userVerifySignature
@@ -313,7 +325,8 @@ export default function KOLRegistrationView() {
             domain,
             BigInt(expiresAt),
             twitterSignature as `0x${string}`,
-            userSignature as `0x${string}`
+            userSignature as `0x${string}`,
+            publicKey
           ],
         });
         
@@ -804,7 +817,7 @@ export default function KOLRegistrationView() {
                     <div>
                       <h4 className="text-sm font-medium text-blue-800">Almost there!</h4>
                       <p className="text-xs text-blue-600 mt-1">
-                        Click "Complete Registration" to finalize your KOL profile on the blockchain.
+                        Click "Complete Registration" to finalize your KOL profile on the blockchain. This will generate your PGP keys (deterministic) used for E2EE (end-to-end encryption) messaging and register with verified credentials.
                       </p>
                     </div>
                   </div>

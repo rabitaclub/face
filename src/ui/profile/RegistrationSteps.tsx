@@ -66,7 +66,7 @@ export default function RegistrationSteps({
     {
       id: 5,
       title: "Complete Registration",
-      description: "Register your KOL profile on the blockchain with verified credentials",
+      description: "Generate your PGP keys (deterministic) and register your KOL profile on the blockchain with verified credentials",
       completed: transactionSubmitted,
       available: ownershipVerified,
       icon: FiCheckCircle

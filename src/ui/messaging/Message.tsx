@@ -4,13 +4,16 @@ import React from 'react';
 import { format } from 'date-fns';
 import { Check, CheckCheck } from 'lucide-react';
 import Image from 'next/image';
+import { KOLProfile } from '@/types/profile';
 
 export interface Message {
     id: number;
-    senderId: number;
+    senderId: string;
+    receiverId: string;
     text: string;
     timestamp: Date;
-    read?: boolean;
+    kolProfile: KOLProfile;
+    isTransactionProcessed?: boolean;
     delivered?: boolean;
 }
 
@@ -66,7 +69,7 @@ export const ChatMessage: React.FC<MessageProps> = ({ message, isMine, senderAva
                     <span>{timeString}</span>
                     {isMine && (
                         <span className="ml-1">
-                            {message.read ? (
+                            {message.isTransactionProcessed ? (
                                 <CheckCheck size={14} />
                             ) : message.delivered ? (
                                 <Check size={14} />

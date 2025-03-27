@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, X, Share2, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, X, Share2, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { KOLProfile } from '@/types/profile';
 import { Message } from './types';
 import SecureImage from '@/components/SecureImage';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/Badge';
+import { ChatMessage } from './ChatMessage';
+import { useMessaging } from '@/hooks/useMessaging';
+import TextareaAutosize from 'react-textarea-autosize';
 
 interface ChatPanelProps {
     contact: KOLProfile;
@@ -19,11 +23,6 @@ interface ChatPanelProps {
     onSendMessage: () => void;
     onShare: () => void;
 }
-
-// Helper to check if URL is external
-const isExternalUrl = (url: string): boolean => {
-    return url.startsWith('http://') || url.startsWith('https://');
-};
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
     contact,
@@ -42,6 +41,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     const [copyTooltip, setCopyTooltip] = useState<string>('Copy');
     const [isMaximized, setIsMaximized] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const MAX_MESSAGE_SIZE = 2000; // Maximum message size in characters
+    const [charCount, setCharCount] = useState(0);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const {
+        publicKey,
+        generateKeys,
+        isInitialized,
+        isLoading: isKeysLoading,
+        checkExistingKeys
+    } = useMessaging()
+
+    useEffect(() => {
+        checkExistingKeys();
+    }, [checkExistingKeys]);
     
     // Scroll to bottom when messages change
     const scrollToBottom = useCallback(() => {
@@ -58,10 +72,17 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
+            setCharCount(0);
             onSendMessage();
         }
     };
     
+    const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newValue = e.target.value;
+        setCharCount(newValue.length);
+        onMessageChange(newValue);
+    };
+
     const renderAvatar = () => {
         return (
             <SecureImage
@@ -120,7 +141,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             }}
         >
             {/* Chat header */}
-            <div className="flex flex-col border-b border-gray-200">
+            <div className="flex-none flex flex-col border-b border-gray-200">
                 <div className="flex items-center justify-between p-4">
                     <div className="flex items-center">
                         {isMobile && (
@@ -152,15 +173,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                                 Share conversation
                             </span>
                         </button>
-                        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200">
-                            <Paperclip size={18} />
-                        </button>
-                        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200">
-                            <MoreVertical size={18} />
-                        </button>
                         <button
                             onClick={toggleMaximize}
-                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full ml-1 transition-colors duration-200 relative group"
+                            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200 relative group ml-2"
                             aria-label={isMaximized ? "Minimize chat" : "Maximize chat"}
                         >
                             {isMaximized ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -187,7 +202,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 <div className="px-4 pb-3 flex items-center text-xs text-gray-500 bg-gray-50">
                     <div className="flex-1 truncate font-mono">{contact.wallet.slice(0, 6)}...{contact.wallet.slice(-6)}</div>
                     <div className="flex ml-2">
-                        <button 
+                        <span className="mr-2 p-1">
+                            Connect: <span className="font-bold">{contact.formattedFee}</span>
+                        </span>
+                        <button
                             className="p-1 hover:text-blue-500 relative group transition-colors duration-200" 
                             onClick={copyWalletAddress}
                         >
@@ -203,49 +221,84 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             {/* Chat messages */}
             <div className="flex-1 overflow-y-auto p-4">
                 {messages.map(message => (
-                    <div
+                    <ChatMessage
                         key={message.id}
-                        className={`mb-4 flex ${
-                            message.senderId === 1 ? 'justify-end' : 'justify-start'
-                        }`}
-                    >
-                        <div
-                            className={`max-w-[70%] rounded-lg p-3 ${
-                                message.senderId === 1
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-100 text-gray-900'
-                            }`}
-                        >
-                            <p className="text-sm">{message.text}</p>
-                            <span className="text-xs opacity-75 mt-1 block">
-                                {message.timestamp.toLocaleTimeString()}
-                            </span>
-                        </div>
-                    </div>
+                        message={message}
+                    />
                 ))}
                 <div ref={messagesEndRef} />
             </div>
             
             {/* Message input */}
-            <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center">
-                    <textarea
-                        value={newMessage}
-                        onChange={(e) => onMessageChange(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Type a message..."
-                        className="flex-1 resize-none rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows={1}
-                    />
+            <div className="flex-none p-4 border-t border-gray-200">
+                { isInitialized && (publicKey !== null || publicKey !== "") && !isKeysLoading && <div className="flex flex-col gap-2">
+                    <div className="relative">
+                        <div className="flex-1 flex flex-col">
+                            <div className="relative">
+                                <TextareaAutosize
+                                    ref={textareaRef}
+                                    value={newMessage}
+                                    onChange={handleMessageChange}
+                                    onKeyDown={handleKeyPress}
+                                    placeholder="Type a message..."
+                                    className="w-full resize-none rounded-lg border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    minRows={1}
+                                    maxRows={5}
+                                    maxLength={MAX_MESSAGE_SIZE}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <button
+                            onClick={() => {
+                                onSendMessage();
+                                setCharCount(0);
+                            }}
+                            disabled={!newMessage.trim() || isLoading || charCount > MAX_MESSAGE_SIZE}
+                            className={cn(
+                                "w-full p-2 rounded-lg transition-all duration-200",
+                                "bg-primary text-dark hover:bg-primary/80",
+                                "disabled:opacity-50 disabled:cursor-not-allowed",
+                                "transform hover:scale-[1.02] active:scale-[0.98]",
+                                "shadow-sm hover:shadow-md",
+                                "flex items-center justify-center gap-2",
+                                "font-medium text-sm"
+                            )}
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="animate-spin" size={18} />
+                                    <span>Sending...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={18} />
+                                    <span>Send Message</span>
+                                </>
+                            )}
+                        </button>
+                        <div className="text-xs text-gray-500 text-right">
+                            {charCount}/{MAX_MESSAGE_SIZE} characters
+                            {charCount > MAX_MESSAGE_SIZE * 0.8 && charCount < MAX_MESSAGE_SIZE && " (Warning: Approaching limit)"}
+                            {charCount >= MAX_MESSAGE_SIZE && " (Limit reached)"}
+                        </div>
+                    </div>
+                </div>
+                }
+                { !isInitialized && <div className="flex items-center">
                     <button
-                        onClick={onSendMessage}
-                        disabled={!newMessage.trim() || isLoading}
-                        className="ml-2 rounded-full bg-blue-500 p-2 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={generateKeys}
+                        disabled={isKeysLoading}
+                        className="ml-2 w-full rounded-full bg-primary p-2 text-dark hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Send size={20} />
+                        {
+                            isKeysLoading ? <Loader2 className="animate-spin mx-auto" /> : "Generate PGP Keys"
+                        }
                     </button>
                 </div>
+                }
             </div>
         </div>
     );
-}; 
+};

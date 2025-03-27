@@ -65,7 +65,7 @@ export default function SecureImage({
     return (
       <Skeleton 
         className={cn(
-          "relative rounded-lg bg-primary/60 overflow-hidden",
+          "relative rounded-lg bg-primary/60 overflow-hidden animate-pulse",
           className
         )}
         style={{ width, height }}

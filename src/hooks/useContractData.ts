@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { createPublicClient, http, Address, parseAbi } from 'viem';
+import { createPublicClient, http, Address, parseAbi, formatEther } from 'viem';
 import { bscTestnet } from 'viem/chains';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveWallet } from './useActiveWallet';
@@ -62,6 +62,18 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
           abi: RABITA_REGISTRY_ABI,
           functionName: 'kolProfiles',
           args
+        }),
+        pgpPublicKeys: async (args: [Address]) => publicClient.readContract({
+          address: RABITA_REGISTRY_ADDRESS,
+          abi: RABITA_REGISTRY_ABI,
+          functionName: 'pgpPublicKeys',
+          args
+        }),
+        pgpNonce: async (args: [Address]) => publicClient.readContract({
+          address: RABITA_REGISTRY_ADDRESS,
+          abi: RABITA_REGISTRY_ABI,
+          functionName: 'pgpNonce',
+          args
         })
       }
     };
@@ -77,21 +89,25 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
 
       try {
         const profileData = await contract.read.kolProfiles([address as Address]) as any;
-
-        // console.debug('profileData', profileData);
-        
-        // Check if the profile exists and is verified
+        const pgpPublicKeys = await contract.read.pgpPublicKeys([address as Address]) as any;
+        console.debug('pgpPublicKeys', pgpPublicKeys)
+        const pgpNonce = await contract.read.pgpNonce([address as Address]) as any;
+        console.debug('pgpNonce', pgpNonce)
         const exists = profileData[0] !== '0x0000000000000000000000000000000000000000';
          
         return {
-          wallet: profileData[0],
-          platform: profileData[1],
-          handle: profileData[2],
-          name: profileData[3],
-          fee: profileData[4],
-          profileIpfsHash: profileData[5] !== "" ? profileData[5] : null,
-          verified: profileData[6],
-          exists
+          wallet: exists ? profileData[0] : address as Address,
+          platform: exists ? profileData[1] : 'blockchain',
+          handle: exists ? profileData[2] : address?.slice(0, 6) + '...' + address?.slice(-6),
+          name: exists ? profileData[3] : address?.slice(0, 6) + '...' + address?.slice(-6),
+          fee: exists ? profileData[4] : BigInt(0),
+          profileIpfsHash: exists ? profileData[5] : null,
+          verified: exists ? profileData[6] : false,
+          exists,
+          pgpKey: {
+            publicKey: pgpPublicKeys,
+            pgpNonce: pgpNonce
+          }
         };
       } catch (err) {
         console.error('Error fetching KOL profile:', err);
@@ -107,17 +123,24 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
   // Format the profile data for easier consumption
   const profileData = useMemo(() => {
     if (!data) {
-      return { ...emptyProfile, exists: false, formattedFee: '0 BNB' };
+      return { 
+        ...emptyProfile,
+        exists: false, 
+        formattedFee: '0 BNB',
+        profileIpfsHash: address ? `https://api.dicebear.com/7.x/identicon/svg?seed=${address}` : null
+      };
     }
     
     return {
       ...data,
       // Format fee as Ether string for display
       formattedFee: data.fee ? 
-        (Number(data.fee) / 10**18).toFixed(4) + ' BNB' : 
-        '0 BNB'
+        Number((Number(formatEther(data.fee))).toFixed(4)) + ' BNB' : 
+        '0 BNB',
+      // If no profile IPFS hash exists, use Dicebar
+      profileIpfsHash: data.profileIpfsHash || `https://api.dicebear.com/7.x/identicon/svg?seed=${data.wallet}`
     };
-  }, [data]);
+  }, [data, address]);
 
   return {
     profile: profileData,
@@ -201,7 +224,7 @@ export function useKOLProfileByHandle(socialHandle?: string): Omit<ProfileDataRe
     return {
       ...data,
       formattedFee: data.fee ? 
-        (Number(data.fee) / 10**18).toFixed(4) + ' BNB' : 
+        Number((Number(formatEther(data.fee))).toFixed(4)) + ' BNB' : 
         '0 BNB'
     };
   }, [data]);

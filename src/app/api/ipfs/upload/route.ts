@@ -272,8 +272,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
     
-    // Optional: Check for specific permissions if needed
-    // For example, if you want to restrict to Twitter-verified users:
     if (!session.user.isTwitterVerified) {
       return NextResponse.json(
         { 
@@ -383,7 +381,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       const adapter = new GreenfieldAdapter(client);
       
       const result = await adapter.uploadFile(imageFile);
-      let ipfsHash;
       let gatewayUrl;
       
       if (result.statusCode === 404) {
@@ -394,13 +391,11 @@ export async function POST(request: NextRequest): Promise<Response> {
         await w3Adapter.initialize();
 
         const result = await w3Adapter.uploadFile(imageFile);
-        ipfsHash = String(result);
         gatewayUrl = w3Adapter.getGatewayUrl(result);
       } else {
         if (!result.body) {
           throw new Error('Upload failed: No response body');
         }
-        ipfsHash = String(result.body);
         gatewayUrl = `${appConfig.url}/api/proxy-image?url=${encodeURIComponent(imageFile.name)}`;
       }
 

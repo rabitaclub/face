@@ -1,35 +1,83 @@
 "use client";
 
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { KOLProfile } from '@/types/profile';
 import SecureImage from '@/components/SecureImage';
-
+import { useKOLProfileData } from '@/hooks/useContractData';
+import { Message } from './Message';
+import { useMessage, useMessaging } from '@/hooks/useMessaging';
+import { decryptMessage } from '@/utils/encryption';
+import { Loader2, User } from 'lucide-react';
+import { useActiveWallet } from '@/hooks/useActiveWallet';
+import { Address } from 'viem';
 interface ContactItemProps {
-    contact: KOLProfile;
+    contact: Address;
     active?: boolean;
-    onClick: (contact: KOLProfile) => void;
+    lastMessage?: Message;
+    onClick: (contact: Address) => void;
 }
-
-// Helper to check if URL is external
-const isExternalUrl = (url: string): boolean => {
-    return url.startsWith('http://') || url.startsWith('https://');
-};
 
 export const ContactItem: React.FC<ContactItemProps> = ({ 
     contact, 
     active = false, 
+    lastMessage,
     onClick 
 }) => {
-    const statusColorClass = 'bg-gray-400';
+    const { profile: {profileIpfsHash, name, handle, wallet} } = useKOLProfileData(contact);
+    const { data: message, isLoading: isMessageLoading, error: messageError } = useMessage(lastMessage?.text || '');
+    const [ decryptedMessage, setDecryptedMessage ] = useState<string | null>(null);
+    const { privateKey, checkExistingKeys } = useMessaging()
+    const { address } = useActiveWallet()
+
+    useEffect(() => {
+        checkExistingKeys()
+    }, [checkExistingKeys])
+
+    const handleDecryptMessage = useCallback(async () => {
+        if (message && privateKey && address && lastMessage) {
+            console.debug(lastMessage)
+            if (lastMessage?.senderId.toLowerCase() === address.toLowerCase() && message.userContent) {
+                const decryptedMessage = await decryptMessage(message.userContent, privateKey);
+                setDecryptedMessage(decryptedMessage);
+            } else {
+                const decryptedMessage = await decryptMessage(message.content, privateKey);
+                setDecryptedMessage(decryptedMessage);
+            }
+        }
+    }, [message, privateKey, address, lastMessage])
+
+    useEffect(() => {
+        handleDecryptMessage()
+    }, [handleDecryptMessage])
 
     const renderAvatar = () => {
         return (
+            !profileIpfsHash?.startsWith("https") ?
             <SecureImage
-                encryptedData={contact.profileIpfsHash || ''}
-                alt={contact.name}
+                encryptedData={profileIpfsHash || ''}
+                alt={name || wallet.slice(0, 6)}
                 className="w-12 h-12 rounded-full object-cover"
+                width={48}
+                height={48}
             />
+            : <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                <User size={24} className="text-gray-400" />
+            </div>
         );
+    };
+
+    const formatTimestamp = (timestamp: Date) => {
+        const now = new Date();
+        const messageDate = new Date(timestamp);
+        const diffInHours = (now.getTime() - messageDate.getTime()) / (1000 * 60 * 60);
+
+        if (diffInHours < 24) {
+            return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (diffInHours < 168) { // 7 days
+            return messageDate.toLocaleDateString([], { weekday: 'short' });
+        } else {
+            return messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
     };
 
     return (
@@ -39,14 +87,30 @@ export const ContactItem: React.FC<ContactItemProps> = ({
         >
             <div className="relative mr-4">
                 {renderAvatar()}
-                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${statusColorClass}`}></div>
             </div>
             <div className="flex-grow min-w-0">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-medium truncate">{contact.name}</h3>
+                    <h3 className="font-medium truncate">{name || `${wallet.slice(0, 6)}...${wallet.slice(-6)}`}</h3>
+                    {lastMessage && (
+                        <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                            {formatTimestamp(lastMessage.timestamp)}
+                        </span>
+                    )}
                 </div>
                 <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-600 truncate">{contact.handle}</p>
+                    <div className="flex-grow min-w-0">
+                        <p className="text-xs text-gray-600 truncate mb-1">{handle}</p>
+                        {decryptedMessage && (
+                            <p className="text-sm text-gray-500 truncate mt-1">
+                                {decryptedMessage}
+                            </p>
+                        )}
+                        {
+                            !decryptedMessage && isMessageLoading && (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            )
+                        }
+                    </div>
                 </div>
             </div>
         </div>

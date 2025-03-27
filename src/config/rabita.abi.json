@@ -148,6 +148,31 @@
             {
                 "indexed": true,
                 "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "pgpPublicKey",
+                "type": "bytes"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "pgpNonce",
+                "type": "uint256"
+            }
+        ],
+        "name": "PGPKeyUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
                 "name": "verifier",
                 "type": "address"
             }
@@ -243,65 +268,6 @@
                 "internalType": "address",
                 "name": "",
                 "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_wallet",
-                "type": "address"
-            },
-            {
-                "internalType": "string",
-                "name": "_platform",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "_username",
-                "type": "string"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "_salt",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bytes16",
-                "name": "_nonce",
-                "type": "bytes16"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_timestamp",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "_domain",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_expiresAt",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bytes",
-                "name": "_verifierSignature",
-                "type": "bytes"
-            }
-        ],
-        "name": "getTypedDataHash",
-        "outputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
             }
         ],
         "stateMutability": "view",
@@ -420,6 +386,44 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "pgpNonce",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "pgpPublicKeys",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "string",
                 "name": "_platform",
                 "type": "string"
@@ -478,6 +482,11 @@
                 "internalType": "bytes",
                 "name": "_userSignature",
                 "type": "bytes"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_pgpPublicKey",
+                "type": "bytes"
             }
         ],
         "name": "registerKOL",
@@ -518,44 +527,50 @@
                 "type": "string"
             }
         ],
-        "name": "socialHandleRegistry",
+        "name": "socialHandleToKOLProfile",
         "outputs": [
             {
                 "internalType": "address",
-                "name": "",
+                "name": "wallet",
                 "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "socialPlatform",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "socialHandle",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "socialName",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "profileIpfsHash",
+                "type": "string"
+            },
+            {
+                "internalType": "bool",
+                "name": "verified",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint256",
+                "name": "registeredAt",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_digest",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bytes",
-                "name": "_signature",
-                "type": "bytes"
-            }
-        ],
-        "name": "testSignatureRecovery",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "stateMutability": "pure",
         "type": "function"
     },
     {
@@ -567,6 +582,24 @@
             }
         ],
         "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes",
+                "name": "_pgpPublicKey",
+                "type": "bytes"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_pgpSignature",
+                "type": "bytes"
+            }
+        ],
+        "name": "updatePGPKey",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -598,75 +631,6 @@
                 "internalType": "bool",
                 "name": "",
                 "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_wallet",
-                "type": "address"
-            },
-            {
-                "internalType": "string",
-                "name": "_platform",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "_username",
-                "type": "string"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "_salt",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bytes16",
-                "name": "_nonce",
-                "type": "bytes16"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_timestamp",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "_domain",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_expiresAt",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bytes",
-                "name": "_verifierSignature",
-                "type": "bytes"
-            },
-            {
-                "internalType": "bytes",
-                "name": "_userSignature",
-                "type": "bytes"
-            }
-        ],
-        "name": "verifyUserSignature",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            },
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
             }
         ],
         "stateMutability": "view",

@@ -1,15 +1,8 @@
 import { KOLProfile } from '@/types/profile';
+import { Message } from './Message';
+export type { Message } from './Message';
 
 export type AvatarStyle = 'identicon' | 'bottts' | 'micah' | 'avataaars' | 'lorelei';
-
-export interface Message {
-    id: number;
-    senderId: number;
-    text: string;
-    timestamp: Date;
-    delivered?: boolean;
-}
-
 export interface MessagingContainerProps {
     initialKolAddress?: `0x${string}`;
 }

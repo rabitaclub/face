@@ -4,24 +4,23 @@ import React from 'react';
 import { ContactItem } from './ContactItem';
 import { KOLProfile } from '@/types/profile';
 import KolSearchBar from '@/components/KolSearch/KolSearchBar';
+import { ConversationSummary } from './hooks/useContacts';
+import { Address } from 'viem';
 
 interface ContactListProps {
-    contacts: KOLProfile[];
+    contacts: ConversationSummary[];
     selectedContactId?: string;
-    searchQuery: string;
-    onSearchChange: (query: string) => void;
-    onContactSelect: (contact: KOLProfile) => void;
+    onContactSelect: (contact: Address) => void;
     width?: string;
 }
 
 export const ContactList: React.FC<ContactListProps> = ({
     contacts,
     selectedContactId,
-    searchQuery,
-    onSearchChange,
     onContactSelect,
     width = '100%'
 }) => {
+
     return (
         <div 
             className="h-full flex flex-col overflow-hidden border-r border-gray-200"
@@ -39,9 +38,10 @@ export const ContactList: React.FC<ContactListProps> = ({
                 {contacts.length > 0 ? (
                     contacts.map(contact => (
                         <ContactItem 
-                            key={contact.wallet} 
-                            contact={contact} 
-                            active={selectedContactId === contact.wallet}
+                            key={contact.participantAddress} 
+                            contact={contact.participantAddress as Address} 
+                            active={selectedContactId === contact.participantAddress}
+                            lastMessage={contact.lastMessage}
                             onClick={onContactSelect}
                         />
                     ))

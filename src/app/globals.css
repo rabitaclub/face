@@ -217,6 +217,12 @@ body {
     font-size: 1.25rem;
     letter-spacing: 0.01em;
   }
+
+  /* Container height adjustments */
+  .mobile-container-height {
+    height: calc(100vh - var(--bottom-nav-height));
+    max-height: calc(100vh - var(--bottom-nav-height));
+  }
 }
 
 /* Toast Container Styles */

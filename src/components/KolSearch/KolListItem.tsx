@@ -12,11 +12,11 @@ import { CheckCircle } from 'lucide-react';
 import { FiCheckCircle, FiShare2 } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-
+import { Address } from 'viem';
 interface KolListItemProps {
     profile: KOLProfile;
     isSelected?: boolean;
-    onClick?: (profile: KOLProfile) => void;
+    onClick?: (profile: Address) => void;
     className?: string;
 }
 
@@ -59,7 +59,7 @@ export const KolListItem: React.FC<KolListItemProps> = ({
                 isSelected && "ring-2 ring-blue-500",
                 className
             )}
-            onClick={() => onClick?.(profile)}
+            onClick={() => onClick?.(profile.wallet)}
         >
             <div className="flex items-start space-x-4">
                 <div className="relative flex-shrink-0">

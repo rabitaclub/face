@@ -13,11 +13,9 @@ export default function EncryptionTestPage() {
   const [recipientPublicKey, setRecipientPublicKey] = useState('');
   const [encryptedMessage, setEncryptedMessage] = useState('');
   const [decryptedMessage, setDecryptedMessage] = useState('');
-  const [hasCheckedKeys, setHasCheckedKeys] = useState(false);
   const [isCheckingKeys, setIsCheckingKeys] = useState(true);
 
   const {
-    privateKey,
     publicKey,
     isInitialized,
     isLoading,
@@ -28,24 +26,13 @@ export default function EncryptionTestPage() {
     clearKeys,
     checkExistingKeys
   } = useMessaging();
-
-  // Check for existing keys on mount without signing
   useEffect(() => {
     const initialize = async () => {
       try {
-        // First check localStorage directly
-        const storedData = localStorage.getItem('rabita_private_key');
-        if (!storedData) {
-          setHasCheckedKeys(true);
-          return;
-        }
-
-        // If we have stored data, then check and decrypt it
+        setIsCheckingKeys(true)
         await checkExistingKeys();
-        setHasCheckedKeys(true);
       } catch (err) {
         console.error('Error checking keys:', err);
-        setHasCheckedKeys(true);
       } finally {
         setIsCheckingKeys(false);
       }
