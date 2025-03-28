@@ -13,7 +13,7 @@ export default function Home() {
   const onboardingSteps = [
     {
       title: "connect your wallet",
-      description: "connect your web3 wallet to get started with rabita's decentralized connectionsm and switch to binance smart chain",
+      description: "connect your web3 wallet to get started with rabita's decentralized connections and switch to binance smart chain",
       action: <CustomConnect />
     },
     {
