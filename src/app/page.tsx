@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CustomConnect from "@/components/CustomConnect";
+import { useActiveWallet } from "@/hooks/useActiveWallet";
 
 export default function Home() {
+  const { address } = useActiveWallet();
   const [currentStep, setCurrentStep] = useState(0);
   
   const onboardingSteps = [
@@ -17,12 +19,12 @@ export default function Home() {
     {
       title: "create your KOL profile (optional)",
       description: "if you are a KOL, set up your digital identity with your wallet address as your unique identifier, and start connecting with your followers.",
-      action: <Link href="/profile/create" className="bg-primary hover:bg-primary-dark text-button px-6 py-3 rounded-button font-medium transition-colors duration-200">Create Profile</Link>
+      action: address ? <Link href="/profile" className="bg-primary hover:bg-primary-dark text-button px-6 py-3 rounded-button font-medium transition-colors duration-200">Create Profile</Link> : null
     },
     {
       title: "start messaging",
       description: "search your KOL, pay for a connection and wait for the reply",
-      action: <Link href="/messages" className="bg-primary hover:bg-primary-dark text-button px-6 py-3 rounded-button font-medium transition-colors duration-200">Open Messages</Link>
+      action: address ? <Link href="/messages" className="bg-primary hover:bg-primary-dark text-button px-6 py-3 rounded-button font-medium transition-colors duration-200">Open Messages</Link> : null
     }
   ];
 

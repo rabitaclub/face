@@ -62,6 +62,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     // Add new state for scroll visibility
     const [showScrollBottom, setShowScrollBottom] = useState(false);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [pullStartY, setPullStartY] = useState(0);
+    const [pullDistance, setPullDistance] = useState(0);
+    const PULL_THRESHOLD = 100; // Distance in pixels to trigger refresh
 
     // Enhanced scroll handling
     const handleScroll = useCallback(() => {
@@ -69,7 +73,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         if (!container) return;
 
         const { scrollTop, scrollHeight, clientHeight } = container;
-        const bottomThreshold = scrollHeight - clientHeight - 100; // Show button when 100px from bottom
+        const bottomThreshold = scrollHeight - clientHeight - 100;
         setShowScrollBottom(scrollTop < bottomThreshold);
     }, []);
 
@@ -80,6 +84,40 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         }
     }, []);
 
+    // Handle pull to refresh
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        const container = messagesContainerRef.current;
+        if (!container || container.scrollTop > 0) return;
+        
+        setPullStartY(e.touches[0].clientY);
+    }, []);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!pullStartY) return;
+        
+        const currentY = e.touches[0].clientY;
+        const distance = currentY - pullStartY;
+        
+        if (distance > 0) {
+            setPullDistance(Math.min(distance, PULL_THRESHOLD));
+        }
+    }, [pullStartY]);
+
+    const handleTouchEnd = useCallback(() => {
+        if (pullDistance >= PULL_THRESHOLD) {
+            setIsRefreshing(true);
+            // Here you would typically trigger a refresh of messages
+            // This should be handled by the parent component
+            setTimeout(() => {
+                setIsRefreshing(false);
+                setPullDistance(0);
+            }, 1000);
+        } else {
+            setPullDistance(0);
+        }
+        setPullStartY(0);
+    }, [pullDistance]);
+
     // Add scroll event listener
     useEffect(() => {
         const container = messagesContainerRef.current;
@@ -89,7 +127,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         return () => container.removeEventListener('scroll', handleScroll);
     }, [handleScroll]);
 
-    // Auto-scroll on new messages
+    // Auto-scroll on new messages and initial load
     useEffect(() => {
         if (!isLoading && messages.length > 0) {
             const container = messagesContainerRef.current;
@@ -100,9 +138,19 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
             if (isNearBottom) {
                 scrollToBottom('smooth');
+            } else {
+                // If not near bottom, show the scroll button
+                setShowScrollBottom(true);
             }
         }
     }, [messages, isLoading, scrollToBottom]);
+
+    // Initial scroll to bottom
+    useEffect(() => {
+        if (messages.length > 0) {
+            scrollToBottom('auto');
+        }
+    }, []); // Only run once on mount
     
     // Handle key presses
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -256,11 +304,31 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 </div>
             </div>
             
-            {/* Updated messages container */}
+            {/* Updated messages container with pull-to-refresh */}
             <div 
                 ref={messagesContainerRef}
                 className="flex-1 overflow-y-auto p-4 relative scroll-smooth"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
             >
+                {/* Pull to refresh indicator */}
+                {pullDistance > 0 && (
+                    <div 
+                        className="absolute top-0 left-0 right-0 flex items-center justify-center"
+                        style={{ 
+                            transform: `translateY(${pullDistance}px)`,
+                            transition: isRefreshing ? 'none' : 'transform 0.2s ease-out'
+                        }}
+                    >
+                        <div className={cn(
+                            "w-8 h-8 rounded-full border-4 border-primary/20",
+                            "border-t-primary animate-spin",
+                            isRefreshing ? "opacity-100" : "opacity-50"
+                        )} />
+                    </div>
+                )}
+
                 {messages?.map(message => (
                     <ChatMessage
                         key={message.id}
