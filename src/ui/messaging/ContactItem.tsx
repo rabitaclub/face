@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { KOLProfile } from '@/types/profile';
 import SecureImage from '@/components/SecureImage';
 import { useKOLProfileData } from '@/hooks/useContractData';
 import { Message } from './Message';

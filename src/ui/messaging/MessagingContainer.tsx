@@ -8,8 +8,6 @@ import { useContacts } from './hooks/useContacts';
 import { useChat } from './hooks/useChat';
 import { useResponsiveLayout } from './hooks/useResponsiveLayout';
 import { useKOLProfileData } from '@/hooks/useContractData';
-import { mockChatHistory } from './data';
-import { KOLProfile } from '@/types/profile';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
@@ -64,7 +62,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         shareConversationLink
     } = useChat();
 
-    const { profile: kolProfile, isLoading: isKolLoading } = useKOLProfileData(initialKolAddress);
+    const { profile: kolProfile, isLoading: isKolLoading, isKOL } = useKOLProfileData(initialKolAddress);
 
     const {
         isMobile,
@@ -116,7 +114,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
     }, [router, hasHistory, closeChat, isClient]);
 
     useEffect(() => {
-        if (initialKolAddress && kolProfile?.exists && isClient) {
+        if (initialKolAddress && isClient) {
             originalHandleContactClick(kolProfile);
             setIsRouteChanging(false);
             setHasHistory(false);

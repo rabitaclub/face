@@ -18,6 +18,7 @@ export interface ProfileDataResult {
   isConnected?: boolean;
   address?: Address;
   hasProfileData: boolean;
+  isKOL: boolean;
 }
 
 // Empty KOL profile for initial state
@@ -150,7 +151,8 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
     refetch,
     isConnected,
     address,
-    hasProfileData: profileData.exists
+    hasProfileData: profileData.exists,
+    isKOL: profileData.verified
   };
 }
 
@@ -234,6 +236,7 @@ export function useKOLProfileByHandle(socialHandle?: string): Omit<ProfileDataRe
     isLoading,
     isError,
     error,
-    hasProfileData: profileData.exists
+    hasProfileData: profileData.exists,
+    isKOL: profileData.verified
   };
 }

@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Send, Paperclip, MoreVertical, Copy, X, Share2, Maximize2, Minimize2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Copy, X, Share2, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { KOLProfile } from '@/types/profile';
 import { Message } from './types';
 import SecureImage from '@/components/SecureImage';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/Badge';
 import { ChatMessage } from './ChatMessage';
 import { useMessaging } from '@/hooks/useMessaging';
 import TextareaAutosize from 'react-textarea-autosize';
