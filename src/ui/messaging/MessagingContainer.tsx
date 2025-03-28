@@ -62,7 +62,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         shareConversationLink
     } = useChat();
 
-    const { profile: kolProfile, isLoading: isKolLoading, isKOL } = useKOLProfileData(initialKolAddress);
+    const { profile: kolProfile, isLoading: isKolLoading } = useKOLProfileData(initialKolAddress);
 
     const {
         isMobile,

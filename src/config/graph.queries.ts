@@ -83,18 +83,17 @@ export const KOL_MESSAGES_QUERY = gql`
 
 export const RABITA_CONVERSATION_QUERY = gql`
   query GetDetailedConversation($userAddress: Bytes!, $otherParty: Bytes!, $first: Int = 20, $skip: Int = 0) {
-    messageSents(
-        where: {
-        or: [
-            # Messages between the two parties in either direction
-            { and: [{ sender: $userAddress }, { kol: $otherParty }] },
-            { and: [{ sender: $otherParty }, { kol: $userAddress }] }
-        ]
-        }
-        orderBy: blockTimestamp
-        orderDirection: desc
-        first: $first
-        skip: $skip
+    conversation: messageSents(
+      where: {
+      or: [
+          { and: [{ sender: $userAddress }, { kol: $otherParty }] },
+          { and: [{ sender: $otherParty }, { kol: $userAddress }] }
+      ]
+      }
+      orderBy: blockTimestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
     ) {
         id
         messageId
@@ -106,38 +105,39 @@ export const RABITA_CONVERSATION_QUERY = gql`
         deadline
         
         senderPGPKey {
-        pgpPublicKey
-        pgpNonce
+          pgpPublicKey
+          pgpNonce
         }
         
         kolProfile {
-        handle
-        platform
-        name
-        fee
-        pgpKey {
+          id
+          handle
+          platform
+          name
+          fee
+          pgpKey {
             publicKey
             pgpNonce
             isActive
-        }
+          }
         }
         
         message {
-        status
-        createdAt
-        updatedAt
-        responses {
+          status
+          createdAt
+          updatedAt
+          responses {
             responseIpfsHash
             responseTimestamp
             kolProfile {
-            handle
-            name
+              handle
+              name
             }
-        }
-        timeout {
+          }
+          timeout {
             triggeredAt
+          }
         }
-        }
-    }
+      }
     }
 `;

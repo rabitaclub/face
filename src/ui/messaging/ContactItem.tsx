@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import SecureImage from '@/components/SecureImage';
 import { useKOLProfileData } from '@/hooks/useContractData';
 import { Message } from './Message';
-import { useMessage, useMessaging } from '@/hooks/useMessaging';
+import { useDecryptedMessage, useMessage, useMessaging } from '@/hooks/useMessaging';
 import { decryptMessage } from '@/utils/encryption';
 import { Loader2, User } from 'lucide-react';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
@@ -23,35 +23,10 @@ export const ContactItem: React.FC<ContactItemProps> = ({
     onClick 
 }) => {
     const { profile: {profileIpfsHash, name, handle, wallet} } = useKOLProfileData(contact);
-    const { data: message, isLoading: isMessageLoading, error: messageError } = useMessage(lastMessage?.text || '');
-    const [ decryptedMessage, setDecryptedMessage ] = useState<string | null>(null);
-    const { privateKey, checkExistingKeys } = useMessaging()
-    const { address } = useActiveWallet()
-
-    useEffect(() => {
-        checkExistingKeys()
-    }, [checkExistingKeys])
-
-    const handleDecryptMessage = useCallback(async () => {
-        if (message && privateKey && address && lastMessage) {
-            console.debug(lastMessage)
-            if (lastMessage?.senderId.toLowerCase() === address.toLowerCase() && message.userContent) {
-                const decryptedMessage = await decryptMessage(message.userContent, privateKey);
-                setDecryptedMessage(decryptedMessage);
-            } else {
-                const decryptedMessage = await decryptMessage(message.content, privateKey);
-                setDecryptedMessage(decryptedMessage);
-            }
-        }
-    }, [message, privateKey, address, lastMessage])
-
-    useEffect(() => {
-        handleDecryptMessage()
-    }, [handleDecryptMessage])
+    const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(lastMessage?.text || '');
 
     const renderAvatar = () => {
         return (
-            !profileIpfsHash?.startsWith("https") ?
             <SecureImage
                 encryptedData={profileIpfsHash || ''}
                 alt={name || wallet.slice(0, 6)}
@@ -59,9 +34,6 @@ export const ContactItem: React.FC<ContactItemProps> = ({
                 width={48}
                 height={48}
             />
-            : <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                <User size={24} className="text-gray-400" />
-            </div>
         );
     };
 
@@ -105,7 +77,7 @@ export const ContactItem: React.FC<ContactItemProps> = ({
                             </p>
                         )}
                         {
-                            !decryptedMessage && isMessageLoading && (
+                            !decryptedMessage && isDecryptedMessageLoading && (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             )
                         }

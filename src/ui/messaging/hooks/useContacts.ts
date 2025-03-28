@@ -4,6 +4,7 @@ import { useGraphQuery } from '@/hooks/useGraphQuery';
 import { KOL_MESSAGES_QUERY } from '@/config/graph.queries';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
 import { Message } from '../Message';
+import { GraphQLResponse, MessageData } from '../types';
 
 interface UseContactsReturn {
     contacts: ConversationSummary[];
@@ -47,25 +48,7 @@ export interface ConversationSummary {
     };
 }
 
-interface MessageData {
-    messageId: string;
-    kol: string;
-    sender: string;
-    blockTimestamp: number;
-    messageIpfsHash: string;
-    kolProfile?: {
-        id: string;
-        handle: string;
-        platform: string;
-        name: string;
-        wallet: string;
-    };
-}
 
-interface GraphQLResponse {
-    sentMessages: MessageData[];
-    receivedMessages: MessageData[];
-}
 
 function processConversationSummaries(data: GraphQLResponse, userAddress: string): ConversationSummary[] {
     try {
@@ -142,7 +125,6 @@ function createMessageObject(msg: MessageData): Message {
 
 export const useContactList = () => {
     const [contacts, setContacts] = useState<ConversationSummary[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const { address } = useActiveWallet();
 
     const { data: messages, isLoading: isFetchingMessages, error } = useGraphQuery<GraphQLResponse>(
@@ -167,6 +149,6 @@ export const useContactList = () => {
 
     return useMemo(() => ({
         contacts,
-        isLoading: isFetchingMessages || isLoading
-    }), [contacts, isFetchingMessages, isLoading]);
+        isLoading: isFetchingMessages
+    }), [contacts, isFetchingMessages]);
 }

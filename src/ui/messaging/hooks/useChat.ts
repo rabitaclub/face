@@ -8,13 +8,12 @@ import { encryptMessage } from '@/utils/encryption';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
 import { Message } from '../Message';
 import { useMessaging } from '@/hooks/useMessaging';
+import { RABITA_CONVERSATION_QUERY } from '@/config/graph.queries';
+import { useGraphQuery } from '@/hooks/useGraphQuery';
+import { GraphQLResponse } from '../types';
 
 const RABITA_MESSAGING_ADDRESS = env.RABITA_MESSAGING_ADDRESS as Address;
 const PANEL_CLOSE_DELAY = 250;
-
-interface UseChatProps {
-    initialKolAddress?: `0x${string}`;
-}
 
 interface UseChatReturn {
     chatMessages: Record<string, Message[]>;
@@ -39,6 +38,16 @@ export function useChat(): UseChatReturn {
     const [isPanelClosing, setIsPanelClosing] = useState(false);
     const { address } = useActiveWallet();
     const closeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const { messages: fetchedMessages, isFetchingMessages, error } = useConversation(selectedContact);
+
+    useEffect(() => {
+        if (fetchedMessages && !isFetchingMessages && !error) {
+            setChatMessages(prev => ({
+                ...prev,
+                [selectedContact?.wallet || '']: fetchedMessages
+            }));
+        }
+    }, [fetchedMessages, selectedContact, setChatMessages, isFetchingMessages, error]);
 
     const handleContactClick = useCallback((contact: KOLProfile): void => {
         setSelectedContact(contact);
@@ -255,16 +264,16 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, []);
 
     useEffect(() => {
-        if (!isIPFSUploaded) {
+        if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered) {
             handleIPFSUpload();
         }
-    }, [handleIPFSUpload, isIPFSUploaded]);
+    }, [handleIPFSUpload, isIPFSUploaded, message]);
 
     useEffect(() => {
-        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent) {
+        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered) {
             handleContractCall();
         }
-    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent]);
+    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message]);
 
     return useMemo(() => ({
         chatStatus,
@@ -274,3 +283,43 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         error
     }), [chatStatus, isMessageSent, isTxnLoading, status, error, isIPFSUploaded, isLoading, isInTransaction]);
 };
+
+export const useConversation = (contact: KOLProfile | null) => {
+    const { address } = useActiveWallet();
+    const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
+    const { data: messages, isLoading: isFetchingMessages, error } = useGraphQuery<GraphQLResponse>(
+        ['userAddress', address || '', 'otherParty', contact?.wallet || ''],
+        RABITA_CONVERSATION_QUERY,
+        {
+            variables: { userAddress: address || '', otherParty: contact?.wallet || '' },
+            skip: !address || !contact,
+            enabled: !!address && !!contact,
+            staleTime: 5 * 1000,
+            refetchInterval: 5 * 1000,
+            refetchOnMount: true
+        }
+    );
+
+    useEffect(() => {
+        if (messages) {
+            const parsedMessages: Message[] = messages.conversation.map(message => ({
+                id: parseInt(message.messageId),
+                senderId: message.sender,
+                receiverId: message.kol,
+                text: message.messageIpfsHash,
+                timestamp: new Date(message.blockTimestamp * 1000),
+                kolProfile: message.kolProfile as unknown as KOLProfile,
+                isTransactionProcessed: true,
+                delivered: true
+            }));
+            parsedMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            setParsedMessages(parsedMessages);
+            // for (const message of messages.conversation) {
+            //     console.debug('message', message);
+            //     console.debug(message.messageId, message.sender, message.kol, message.messageIpfsHash, message.blockTimestamp, message.kolProfile, message.kolProfile?.id)
+            // }
+        }
+    }, [messages]);
+
+    return { messages: parsedMessages, isFetchingMessages, error };
+}

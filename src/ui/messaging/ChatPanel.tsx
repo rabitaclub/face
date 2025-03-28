@@ -3,12 +3,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Send, Copy, X, Share2, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { KOLProfile } from '@/types/profile';
-import { Message } from './types';
 import SecureImage from '@/components/SecureImage';
 import { cn } from '@/lib/utils';
 import { ChatMessage } from './ChatMessage';
 import { useMessaging } from '@/hooks/useMessaging';
 import TextareaAutosize from 'react-textarea-autosize';
+import { useKOLProfileData } from '@/hooks/useContractData';
+import { useConversation } from './hooks/useChat';
+import { Message } from './Message';
 
 interface ChatPanelProps {
     contact: KOLProfile;
@@ -43,6 +45,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     const MAX_MESSAGE_SIZE = 2000; // Maximum message size in characters
     const [charCount, setCharCount] = useState(0);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const { profile: kolProfile, isKOL } = useKOLProfileData(contact.wallet)
 
     const {
         publicKey,
@@ -56,14 +59,48 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         checkExistingKeys();
     }, [checkExistingKeys]);
     
-    // Scroll to bottom when messages change
-    const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Add new state for scroll visibility
+    const [showScrollBottom, setShowScrollBottom] = useState(false);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+    // Enhanced scroll handling
+    const handleScroll = useCallback(() => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        const bottomThreshold = scrollHeight - clientHeight - 100; // Show button when 100px from bottom
+        setShowScrollBottom(scrollTop < bottomThreshold);
     }, []);
-    
+
+    // Improved scroll to bottom function
+    const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior });
+        }
+    }, []);
+
+    // Add scroll event listener
     useEffect(() => {
-        if (!isLoading) {
-            scrollToBottom();
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
+
+    // Auto-scroll on new messages
+    useEffect(() => {
+        if (!isLoading && messages.length > 0) {
+            const container = messagesContainerRef.current;
+            if (!container) return;
+
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+            if (isNearBottom) {
+                scrollToBottom('smooth');
+            }
         }
     }, [messages, isLoading, scrollToBottom]);
     
@@ -197,13 +234,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     </div>
                 </div>
                 
-                {/* Wallet address information */}
-                <div className="px-4 pb-3 flex items-center text-xs text-gray-500 bg-gray-50">
-                    <div className="flex-1 truncate font-mono">{contact.wallet.slice(0, 6)}...{contact.wallet.slice(-6)}</div>
-                    <div className="flex ml-2">
-                        <span className="mr-2 p-1">
-                            Connect: <span className="font-bold">{contact.formattedFee}</span>
-                        </span>
+                <div className="p-3 flex items-center text-xs text-gray-500 bg-gray-50">
+                    <div className="flex-1 truncate font-mono flex items-center">
+                        {contact.wallet.slice(0, 6)}...{contact.wallet.slice(-6)}
                         <button
                             className="p-1 hover:text-blue-500 relative group transition-colors duration-200" 
                             onClick={copyWalletAddress}
@@ -214,18 +247,61 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                             </span>
                         </button>
                     </div>
+                    <div className="flex ml-2">
+                        { isKOL && <span className="mr-2 p-1">
+                                Connect: <span className="font-bold">{contact.formattedFee}</span>
+                            </span>
+                        }
+                    </div>
                 </div>
             </div>
             
-            {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto p-4">
-                {messages.map(message => (
+            {/* Updated messages container */}
+            <div 
+                ref={messagesContainerRef}
+                className="flex-1 overflow-y-auto p-4 relative scroll-smooth"
+            >
+                {messages?.map(message => (
                     <ChatMessage
                         key={message.id}
                         message={message}
                     />
                 ))}
                 <div ref={messagesEndRef} />
+
+                {/* Floating scroll to bottom button */}
+                {showScrollBottom && (
+                    <div className="sticky bottom-4 right-0 flex justify-end pointer-events-none">
+                        <button
+                            onClick={() => scrollToBottom('smooth')}
+                            className={cn(
+                                "pointer-events-auto",
+                                "p-2.5 rounded-full",
+                                "bg-white/90 backdrop-blur-sm",
+                                "shadow-lg hover:shadow-xl",
+                                "text-gray-600 hover:text-gray-900",
+                                "transition-all duration-200",
+                                "transform hover:scale-105 active:scale-95",
+                                "focus:outline-none focus:ring-2 focus:ring-primary/50",
+                                "border border-gray-200/50"
+                            )}
+                            aria-label="Scroll to bottom"
+                        >
+                            <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2.5"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path d="M7 13l5 5 5-5" />
+                                <path d="M7 6l5 5 5-5" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
             </div>
             
             {/* Message input */}

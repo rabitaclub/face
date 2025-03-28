@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { cn } from '@/utils/cn';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { FiAlertCircle } from 'react-icons/fi';
+import { User } from 'lucide-react';
 
 interface SecureImageProps {
   encryptedData: string;
@@ -75,6 +76,17 @@ export default function SecureImage({
 
   if (!imageUrl) {
     return null;
+  }
+
+  if (encryptedData?.startsWith('https://')) {
+    return (
+      <div className={cn(
+        "relative rounded-lg overflow-hidden bg-primary/20 flex items-center justify-center",
+        className
+      )}>
+        <User className="text-gray-400" size={24} />
+      </div>
+    );
   }
 
   return (

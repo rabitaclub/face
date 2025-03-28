@@ -167,3 +167,20 @@ export const useMessage = (ipfsHash: string) => {
   };
 };
 
+export const useDecryptedMessage = (ipfsHash: string) => {
+  const { privateKey, checkExistingKeys, isInitialized } = useMessaging();
+  const { data, isLoading, error } = useMessage(ipfsHash);
+  const [decryptedMessage, setDecryptedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkExistingKeys();
+  }, [checkExistingKeys]);
+
+  useEffect(() => {
+    if (data && privateKey && isInitialized) {
+      decryptMessage(data.content, privateKey).then(setDecryptedMessage);
+    }
+  }, [data, privateKey, isInitialized]);
+
+  return { decryptedMessage, isLoading, error };
+};

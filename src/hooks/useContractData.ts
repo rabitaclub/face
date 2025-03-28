@@ -99,7 +99,7 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
         return {
           wallet: exists ? profileData[0] : address as Address,
           platform: exists ? profileData[1] : 'blockchain',
-          handle: exists ? profileData[2] : address?.slice(0, 6) + '...' + address?.slice(-6),
+          handle: exists ? profileData[2] : '-',
           name: exists ? profileData[3] : address?.slice(0, 6) + '...' + address?.slice(-6),
           fee: exists ? profileData[4] : BigInt(0),
           profileIpfsHash: exists ? profileData[5] : null,

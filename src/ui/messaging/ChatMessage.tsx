@@ -3,6 +3,8 @@ import { Message } from './types';
 import { useAccount } from 'wagmi';
 import moment from 'moment';
 import { useChatMessage } from './hooks/useChat';
+import { useDecryptedMessage } from '@/hooks/useMessaging';
+import { Loader2 } from 'lucide-react';
 
 interface ChatMessageProps {
     message: Message;
@@ -24,14 +26,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         }
     }
 
+    const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(message.text || '');
+
     return (
         <div className={`flex flex-col mb-4 ${message.senderId === address ? 'items-end' : 'items-start'}`}>
             <div className={`max-w-[70%] px-4 py-2 rounded-lg text-sm ${
                 message.senderId === address
                     ? 'bg-primary text-dark rounded-br-none' 
-                    : 'bg-secondary text-white rounded-bl-none'
+                    : 'bg-gray-100 text-gray-800 rounded-bl-none'
             }`}>
-                <p>{message.text}</p>
+                {isDecryptedMessageLoading || !decryptedMessage
+                ?
+                <Loader2 className="w-4 h-4 animate-spin" />
+                :
+                <p>{decryptedMessage}</p>
+                }
             </div>
             <span className={`text-[10px] mt-1 px-1 text-gray-500`}>
                 {formatDate(message.timestamp)}
