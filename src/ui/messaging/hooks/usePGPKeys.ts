@@ -18,8 +18,8 @@ export const usePGPKeys = (address: string) => {
         PGP_KEYS_QUERY,
         {
             variables: { address },
-            refetchInterval: 1000 * 60 * 5,
-            staleTime: 1000 * 60 * 5,
+            refetchInterval: 1000 * 2,
+            staleTime: 1000,
             refetchOnMount: true,
             retry(failureCount, error) {
                 console.debug('retry', failureCount, error);
@@ -38,7 +38,7 @@ export const usePGPKeys = (address: string) => {
         }
     }, [pgpKeys]);
 
-    console.debug('publicKey', publicKey, pgpKeys, isLoadingPGPKeys);
+    // console.debug('publicKey', publicKey, pgpKeys, isLoadingPGPKeys);
 
     return { publicKey, pgpNonce, isLoadingPGPKeys };
 }

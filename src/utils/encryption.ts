@@ -48,7 +48,7 @@ export const decryptMessage = async (
   try {
     const encryptedDataParsed = JSON.parse(encryptedData);
     const decryptedMessage = await EthCrypto.decryptWithPrivateKey(privateKey, encryptedDataParsed);
-    console.debug(decryptedMessage)
+    // console.debug(decryptedMessage)
     return decryptedMessage;
   } catch (error) {
     console.error('Error in decryptMessage:', error);

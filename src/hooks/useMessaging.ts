@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useMessaging as useMessagingContext } from '@/contexts/MessagingContext';
 import { decryptMessage } from '@/utils/encryption';
+import { Message } from '@/ui/messaging/Message';
+import { useActiveWallet } from './useActiveWallet';
 
 const getMessage = async (ipfsHash: string) => {
   const response = await fetch(ipfsHash);
@@ -23,9 +25,10 @@ export const useMessage = (ipfsHash: string) => {
   };
 };
 
-export const useDecryptedMessage = (ipfsHash: string) => {
+export const useDecryptedMessage = (message?: Message) => {
+  const { address } = useActiveWallet();
   const { privateKey, checkExistingKeys, isInitialized } = useMessagingContext();
-  const { data, isLoading, error } = useMessage(ipfsHash);
+  const { data, isLoading, error } = useMessage(message?.text || '');
   const [decryptedMessage, setDecryptedMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,12 +37,12 @@ export const useDecryptedMessage = (ipfsHash: string) => {
 
   useEffect(() => {
     if (data && privateKey && isInitialized) {
-      decryptMessage(data.content, privateKey).then(setDecryptedMessage);
+      console.debug('decrypting message', message?.text);
+      decryptMessage(data.metadata.senderId?.toLowerCase() === address?.toLowerCase() ? data.userContent : data.content, privateKey).then(setDecryptedMessage);
     }
-  }, [data, privateKey, isInitialized]);
+  }, [data, privateKey, isInitialized, message]);
 
   return { decryptedMessage, isLoading, error };
 };
 
-// Re-export the context hook
 export { useMessagingContext as useMessaging };

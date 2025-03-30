@@ -14,7 +14,7 @@ interface ChatMessageProps {
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     const { address } = useAccount();
 
-    const { chatStatus, isMessageSent, isTxnLoading, status, error, retrySendMessage } = useChatMessage(message);
+    const { chatStatus, isMessageSent, isTxnLoading, error, retrySendMessage } = useChatMessage(message);
 
     const formatDate = (date: Date) => {
         const messageDate = moment(date);
@@ -27,7 +27,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         }
     }
 
-    const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(message.text || '');
+    const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(message);
 
     return (
         <div className={`flex flex-col mb-4 ${message.senderId.toLowerCase() === address?.toLowerCase() ? 'items-end' : 'items-start'}`}>

@@ -40,6 +40,7 @@ export function useChat(): UseChatReturn {
     const { address } = useActiveWallet();
     const closeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const { messages: fetchedMessages, isFetchingMessages, error } = useConversation(selectedContact);
+    const [replyToMessageId, setReplyToMessageId] = useState<number | null>(null);
 
     useEffect(() => {
         if (fetchedMessages && !isFetchingMessages && !error) {
@@ -71,20 +72,9 @@ export function useChat(): UseChatReturn {
     const handleSendMessage = useCallback(() => {
         if (!newMessage.trim() || !selectedContact || !address) return;
 
-        console.debug('handleSendMessage', chatMessages[selectedContact.wallet]?.length);
-
-        let replyToMessageId = null;
-        if (chatMessages[selectedContact.wallet]?.length > 0) {
-            replyToMessageId = chatMessages[selectedContact.wallet]?.pop()?.id;
-            console.debug('replyToMessageId', replyToMessageId);
-            // isKOLResponding = chatMessages[selectedContact.wallet]?.pop()?.senderId !== address;
-        }
-
-        // return;
-
         setIsLoading(true);
         const message: Message = {
-            id: replyToMessageId ? replyToMessageId : -1,
+            id: -1,
             senderId: address,
             receiverId: selectedContact.wallet,
             text: newMessage.trim(),
@@ -94,14 +84,25 @@ export function useChat(): UseChatReturn {
             isTransactionProcessed: false
         };
 
-        setChatMessages(prev => ({
-            ...prev,
-            [selectedContact.wallet]: [...(prev[selectedContact.wallet] || []), message]
-        }));
+        setChatMessages(prev => {
+            const currentMessages = prev[selectedContact.wallet] || [];
+            const lastMessage = currentMessages[currentMessages.length - 1];
+            const replyToMessageId = lastMessage?.id ?? -1;
+
+            const newMessage = {
+                ...message,
+                id: replyToMessageId
+            };
+
+            return {
+                ...prev,
+                [selectedContact.wallet]: [...currentMessages, newMessage]
+            };
+        });
 
         setNewMessage('');
         setIsLoading(false);
-    }, [newMessage, selectedContact, address, chatMessages]);
+    }, [newMessage, selectedContact, address]);
 
     const shareConversationLink = useCallback((contact: KOLProfile) => {
         const url = `${window.location.origin}/messages/${contact.wallet}`;
@@ -163,9 +164,8 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     const [chatStatus, setChatStatus] = useState<string | undefined>(undefined);
     const abortControllerRef = useRef<AbortController | undefined>(undefined);
     const { checkExistingKeys, publicKey: userPGPKey } = useMessaging()
-    const { address } = useActiveWallet();
 
-    const { publicKey: kolPGPKey, pgpNonce: kolPGPNonce, isLoadingPGPKeys } = usePGPKeys(message.kolProfile.wallet);
+    const { publicKey: receiverPGPKey, pgpNonce: kolPGPNonce, isLoadingPGPKeys } = usePGPKeys(message.kolProfile.wallet);
 
     useEffect(() => {
         checkExistingKeys()
@@ -196,11 +196,8 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         setIsLoading(true);
         
         try {
-            // console.debug('message', message);
-            // setChatStatus("error");
-            // return
-            // console.debug('handleIPFSUpload', message.kolProfile?.pgpKey?.publicKey, kolPGPKey, message.kolProfile);
-            let pgpPublicKey = message.kolProfile?.pgpKey?.publicKey !== "0x" ? message.kolProfile?.pgpKey?.publicKey : kolPGPKey;
+            let pgpPublicKey = message.kolProfile?.pgpKey?.publicKey !== "0x" ? message.kolProfile?.pgpKey?.publicKey : receiverPGPKey;
+            // console.debug('receiverPGPKey', receiverPGPKey, kolPGPNonce, message.kolProfile?.pgpKey?.publicKey);
             if (!pgpPublicKey) {
                 setChatStatus("Error: Missing encryption key");
                 setIsErrorInCall(true);
@@ -252,7 +249,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [message, userPGPKey, kolPGPKey, kolPGPNonce]);
+    }, [message, userPGPKey, receiverPGPKey, kolPGPNonce]);
 
     const handleContractCall = useCallback(async () => {
         if (!isIPFSUploaded) return;
@@ -261,10 +258,9 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         setIsInTransaction(true);
         
         try {
-            let pgpPublicKey = message.kolProfile?.pgpKey?.publicKey !== "0x" ? message.kolProfile?.pgpKey?.publicKey : kolPGPKey;
             let isResponding = message.id > 0 && message.kolProfile?.pgpKey?.publicKey === "0x";
 
-            let pgpNonce = message.kolProfile?.pgpKey?.pgpNonce || kolPGPNonce;
+            let userPGPNonce = '1'
 
             // console.debug('handleContractCall', isResponding, message.id, ipfsHash, message.senderId, message.receiverId, pgpPublicKey, pgpNonce);
             // return;
@@ -277,8 +273,8 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
                     ipfsHash
                 ] :[
                     message.kolProfile.wallet,
-                    pgpPublicKey,
-                    pgpNonce,
+                    userPGPKey,
+                    userPGPNonce,
                     ipfsHash
                 ],
                 value: message.kolProfile.fee
@@ -295,7 +291,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
             setIsInTransaction(false);
             setIsErrorInCall(true);
         }
-    }, [isIPFSUploaded, writeContractAsync, message, ipfsHash, kolPGPKey, kolPGPNonce]);
+    }, [isIPFSUploaded, writeContractAsync, message, ipfsHash, receiverPGPKey, kolPGPNonce]);
 
     const retrySendMessage = useCallback(() => {
         setIsErrorInCall(false);
@@ -344,11 +340,11 @@ export const useConversation = (contact: KOLProfile | null) => {
         RABITA_CONVERSATION_QUERY,
         {
             variables: { userAddress: address || '', otherParty: contact?.wallet || '' },
-            skip: !address || !contact,
             enabled: !!address && !!contact,
-            staleTime: 5 * 1000,
-            refetchInterval: 5 * 1000,
-            refetchOnMount: true
+            staleTime: 10 * 1000,
+            refetchInterval: 10 * 1000,
+            refetchOnMount: true,
+            refetchOnWindowFocus: true
         }
     );
 

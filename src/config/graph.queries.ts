@@ -169,10 +169,11 @@ export const RABITA_CONVERSATION_QUERY = gql`
 
 export const PGP_KEYS_QUERY = gql`
   query PGPKeys($address: Bytes!) {
-    senderPGPKeys(where: { sender: $address }) {
+    senderPGPKeys(where: { sender: $address } orderBy: blockTimestamp orderDirection: desc) {
       sender
       pgpPublicKey
       pgpNonce
+      blockTimestamp
     }
   }
 `;

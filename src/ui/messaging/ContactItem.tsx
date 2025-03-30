@@ -23,7 +23,7 @@ export const ContactItem: React.FC<ContactItemProps> = ({
     onClick 
 }) => {
     const { profile: {profileIpfsHash, name, handle, wallet} } = useKOLProfileData(contact);
-    const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(lastMessage?.text || '');
+    const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(lastMessage);
 
     const renderAvatar = () => {
         return (

@@ -136,15 +136,15 @@ export const useContactList = () => {
     const [contacts, setContacts] = useState<ConversationSummary[]>([]);
     const { address } = useActiveWallet();
 
-    const { data: messages, isLoading: isFetchingMessages, error } = useGraphQuery<GraphQLResponse>(
+    const { data: messages, isLoading: isFetchingMessages } = useGraphQuery<GraphQLResponse>(
         ['userAddress', address || ''],
         KOL_MESSAGES_QUERY,
         {
             variables: { userAddress: address || '' },
-            skip: !address,
-            staleTime: 5 * 1000,
-            refetchInterval: 5 * 1000,
-            refetchOnMount: true
+            staleTime: 10 * 1000,
+            refetchInterval: 10 * 1000,
+            refetchOnMount: true,
+            refetchOnWindowFocus: true
         }
     );
 
