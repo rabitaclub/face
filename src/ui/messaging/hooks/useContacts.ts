@@ -70,20 +70,29 @@ function processConversationSummaries(data: GraphQLResponse, userAddress: string
                     ...msg.kolProfile
                 } as KOLProfile
             });
-
-
         }
         
         for (const msg of data.receivedMessages ?? []) {
             const participantAddress = msg.sender;
             const existingConversation = conversations.get(participantAddress);
             
-            if (!existingConversation || 
-                msg.blockTimestamp > existingConversation.lastMessage.timestamp.getTime()) {
+            if (!existingConversation || msg.blockTimestamp > existingConversation.lastMessage.timestamp.getTime()) {
+                let tempMessage = msg;
+                
+                if (msg.message.status === "RESPONDED") {
+                    const responseMessage = msg.message.responses[0];
+                    if (responseMessage) {
+                        tempMessage = {
+                            ...msg,
+                            messageIpfsHash: responseMessage.responseIpfsHash,
+                            blockTimestamp: responseMessage.responseTimestamp
+                        };
+                    }
+                }
                 conversations.set(participantAddress, {
                     participantAddress,
                     lastMessage: {
-                        ...createMessageObject(msg),
+                        ...createMessageObject(tempMessage),
                         receiverId: userAddress
                     },
                     kolProfile: {
@@ -141,8 +150,9 @@ export const useContactList = () => {
 
     useEffect(() => {
         if (messages) {
+            console.debug("messages",messages)
             const conversationSummaries = processConversationSummaries(messages, address || '');
-            console.debug("conversationSummaries",conversationSummaries)
+            // console.debug("conversationSummaries",conversationSummaries)
             setContacts(conversationSummaries);
         }
     }, [messages, address, isFetchingMessages]);

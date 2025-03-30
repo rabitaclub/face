@@ -78,7 +78,32 @@ export const KOL_MESSAGES_QUERY = gql`
         }
         }
     }
+
+    responseMessages: messageRespondeds(
+        where: {
+            kol: $userAddress
+        }
+        orderBy: blockTimestamp
+        orderDirection: desc
+        first: $first
+        skip: $skip
+    ) {
+        id
+        messageId
+        kol
+        responseIpfsHash
+        message {
+            status
+            updatedAt
+            responses(first: 1, orderBy: responseTimestamp, orderDirection: desc) {
+                responseIpfsHash
+                responseTimestamp
+            }
+        }
+
+        blockTimestamp
     }
+  }
 `;
 
 export const RABITA_CONVERSATION_QUERY = gql`
@@ -140,4 +165,14 @@ export const RABITA_CONVERSATION_QUERY = gql`
         }
       }
     }
+`;
+
+export const PGP_KEYS_QUERY = gql`
+  query PGPKeys($address: Bytes!) {
+    senderPGPKeys(where: { sender: $address }) {
+      sender
+      pgpPublicKey
+      pgpNonce
+    }
+  }
 `;

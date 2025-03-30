@@ -20,11 +20,20 @@ export interface MessageData {
         name: string;
         wallet: string;
     };
+    message: {
+        status: string;
+        updatedAt: number;
+        responses: {
+            responseIpfsHash: string;
+            responseTimestamp: number;
+        }[];
+    };
 }
 
 export interface GraphQLResponse {
     sentMessages: MessageData[];
     receivedMessages: MessageData[];
+    responseMessages: MessageData[];
     conversation: MessageData[];
 }
 

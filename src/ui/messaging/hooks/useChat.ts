@@ -11,6 +11,7 @@ import { useMessaging } from '@/hooks/useMessaging';
 import { RABITA_CONVERSATION_QUERY } from '@/config/graph.queries';
 import { useGraphQuery } from '@/hooks/useGraphQuery';
 import { GraphQLResponse } from '../types';
+import { usePGPKeys } from './usePGPKeys';
 
 const RABITA_MESSAGING_ADDRESS = env.RABITA_MESSAGING_ADDRESS as Address;
 const PANEL_CLOSE_DELAY = 250;
@@ -70,9 +71,20 @@ export function useChat(): UseChatReturn {
     const handleSendMessage = useCallback(() => {
         if (!newMessage.trim() || !selectedContact || !address) return;
 
+        console.debug('handleSendMessage', chatMessages[selectedContact.wallet]?.length);
+
+        let replyToMessageId = null;
+        if (chatMessages[selectedContact.wallet]?.length > 0) {
+            replyToMessageId = chatMessages[selectedContact.wallet]?.pop()?.id;
+            console.debug('replyToMessageId', replyToMessageId);
+            // isKOLResponding = chatMessages[selectedContact.wallet]?.pop()?.senderId !== address;
+        }
+
+        // return;
+
         setIsLoading(true);
         const message: Message = {
-            id: Date.now(),
+            id: replyToMessageId ? replyToMessageId : -1,
             senderId: address,
             receiverId: selectedContact.wallet,
             text: newMessage.trim(),
@@ -89,7 +101,7 @@ export function useChat(): UseChatReturn {
 
         setNewMessage('');
         setIsLoading(false);
-    }, [newMessage, selectedContact, address]);
+    }, [newMessage, selectedContact, address, chatMessages]);
 
     const shareConversationLink = useCallback((contact: KOLProfile) => {
         const url = `${window.location.origin}/messages/${contact.wallet}`;
@@ -136,6 +148,7 @@ interface UseChatMessageReturn {
     isTxnLoading: boolean;
     status: string | undefined;
     error: Error | null;
+    retrySendMessage: () => void;
 }
 
 export const useChatMessage = (message: Message): UseChatMessageReturn => {
@@ -143,12 +156,16 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     const [isIPFSUploaded, setIsIPFSUploaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [ipfsHash, setIpfsHash] = useState('');
+    const [isErrorInCall, setIsErrorInCall] = useState(false);
     const { writeContractAsync } = useWriteContract();
     const [isInTransaction, setIsInTransaction] = useState(false);
     const [transactionHash, setTransactionHash] = useState<`0x${string}` | undefined>(undefined);
     const [chatStatus, setChatStatus] = useState<string | undefined>(undefined);
     const abortControllerRef = useRef<AbortController | undefined>(undefined);
     const { checkExistingKeys, publicKey: userPGPKey } = useMessaging()
+    const { address } = useActiveWallet();
+
+    const { publicKey: kolPGPKey, pgpNonce: kolPGPNonce, isLoadingPGPKeys } = usePGPKeys(message.kolProfile.wallet);
 
     useEffect(() => {
         checkExistingKeys()
@@ -164,12 +181,14 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         }
         if (isError) {
             console.error('Transaction error:', error);
+            setIsErrorInCall(true);
         }
     }, [isSuccess, isError, error]);
 
     const handleIPFSUpload = useCallback(async () => {
         if (!message.kolProfile.pgpKey?.publicKey || !userPGPKey) {
             setChatStatus("Error: Missing encryption key");
+            setIsErrorInCall(true);
             return;
         }
 
@@ -177,7 +196,17 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         setIsLoading(true);
         
         try {
-            const encryptedMessage = await encryptMessage(message.text, message.kolProfile.pgpKey.publicKey);
+            // console.debug('message', message);
+            // setChatStatus("error");
+            // return
+            // console.debug('handleIPFSUpload', message.kolProfile?.pgpKey?.publicKey, kolPGPKey, message.kolProfile);
+            let pgpPublicKey = message.kolProfile?.pgpKey?.publicKey !== "0x" ? message.kolProfile?.pgpKey?.publicKey : kolPGPKey;
+            if (!pgpPublicKey) {
+                setChatStatus("Error: Missing encryption key");
+                setIsErrorInCall(true);
+                return;
+            }
+            const encryptedMessage = await encryptMessage(message.text, pgpPublicKey);
             const userEncryptedMessage = await encryptMessage(message.text, userPGPKey);
             const jsonBody = {
                 content: encryptedMessage,
@@ -185,7 +214,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
                 metadata: {
                     senderId: message.senderId,
                     receiverId: message.receiverId,
-                    kolProfile: message.kolProfile.pgpKey.publicKey
+                    kolProfile: pgpPublicKey
                 }
             };
 
@@ -223,23 +252,33 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [message, userPGPKey]);
+    }, [message, userPGPKey, kolPGPKey, kolPGPNonce]);
 
     const handleContractCall = useCallback(async () => {
-        if (!isIPFSUploaded || !message.kolProfile.pgpKey?.publicKey || !message.kolProfile.pgpKey?.pgpNonce) return;
+        if (!isIPFSUploaded) return;
 
         setChatStatus("Sending message...");
         setIsInTransaction(true);
         
         try {
+            let pgpPublicKey = message.kolProfile?.pgpKey?.publicKey !== "0x" ? message.kolProfile?.pgpKey?.publicKey : kolPGPKey;
+            let isResponding = message.id > 0 && message.kolProfile?.pgpKey?.publicKey === "0x";
+
+            let pgpNonce = message.kolProfile?.pgpKey?.pgpNonce || kolPGPNonce;
+
+            // console.debug('handleContractCall', isResponding, message.id, ipfsHash, message.senderId, message.receiverId, pgpPublicKey, pgpNonce);
+            // return;
             const tx = await writeContractAsync({
                 address: RABITA_MESSAGING_ADDRESS,
                 abi: RABITA_MESSAGING_ABI,
-                functionName: 'sendEncryptedMessage',
-                args: [
+                functionName: isResponding ? 'respondToEncryptedMessage' : 'sendEncryptedMessage',
+                args: isResponding ? [
+                    message.id,
+                    ipfsHash
+                ] :[
                     message.kolProfile.wallet,
-                    message.kolProfile.pgpKey.publicKey,
-                    message.kolProfile.pgpKey.pgpNonce,
+                    pgpPublicKey,
+                    pgpNonce,
                     ipfsHash
                 ],
                 value: message.kolProfile.fee
@@ -250,11 +289,23 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         } catch (error) {
             console.error('Contract call error:', error);
             setChatStatus("Error sending message");
+            setIsErrorInCall(true);
         } finally {
             setIsLoading(false);
             setIsInTransaction(false);
+            setIsErrorInCall(true);
         }
-    }, [isIPFSUploaded, writeContractAsync, message, ipfsHash]);
+    }, [isIPFSUploaded, writeContractAsync, message, ipfsHash, kolPGPKey, kolPGPNonce]);
+
+    const retrySendMessage = useCallback(() => {
+        setIsErrorInCall(false);
+        setIsIPFSUploaded(false);
+        setIsInTransaction(false);
+        setIsLoading(false);
+        setIsMessageSent(false);
+        setTransactionHash(undefined);
+        setChatStatus(undefined);
+    }, []);
 
     useEffect(() => {
         abortControllerRef.current = new AbortController();
@@ -264,24 +315,25 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, []);
 
     useEffect(() => {
-        if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered) {
+        if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered && !isLoadingPGPKeys && !isErrorInCall) {
             handleIPFSUpload();
         }
-    }, [handleIPFSUpload, isIPFSUploaded, message]);
+    }, [handleIPFSUpload, isIPFSUploaded, message, isLoadingPGPKeys, isErrorInCall]);
 
     useEffect(() => {
-        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered) {
+        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered && !isErrorInCall) {
             handleContractCall();
         }
-    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message]);
+    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message, isErrorInCall]);
 
     return useMemo(() => ({
         chatStatus,
         isMessageSent,
         isTxnLoading: isTxnLoading || isIPFSUploaded || isLoading || isInTransaction,
         status,
-        error
-    }), [chatStatus, isMessageSent, isTxnLoading, status, error, isIPFSUploaded, isLoading, isInTransaction]);
+        error: chatStatus?.toLowerCase().includes('error') ? new Error(chatStatus) : null,
+        retrySendMessage
+    }), [chatStatus, isMessageSent, isTxnLoading, status, error, isIPFSUploaded, isLoading, isInTransaction, retrySendMessage]);
 };
 
 export const useConversation = (contact: KOLProfile | null) => {
@@ -312,8 +364,22 @@ export const useConversation = (contact: KOLProfile | null) => {
                 isTransactionProcessed: true,
                 delivered: true
             }));
-            parsedMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-            setParsedMessages(parsedMessages);
+            const respondedMessages = messages.conversation.filter(message => message.message.status === "RESPONDED").map(message => ({
+                id: parseInt(message.messageId)+9999,
+                senderId: message.kol,
+                receiverId: message.sender,
+                text: message.message.responses[0].responseIpfsHash,
+                timestamp: new Date(message.message.responses[0].responseTimestamp * 1000),
+                kolProfile: message.kolProfile as unknown as KOLProfile,
+                isTransactionProcessed: true,
+                delivered: true
+            }));
+
+            console.debug("respondedMessages",respondedMessages)
+
+            let allMessages = [...parsedMessages, ...respondedMessages];
+            allMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            setParsedMessages(allMessages);
             // for (const message of messages.conversation) {
             //     console.debug('message', message);
             //     console.debug(message.messageId, message.sender, message.kol, message.messageIpfsHash, message.blockTimestamp, message.kolProfile, message.kolProfile?.id)
