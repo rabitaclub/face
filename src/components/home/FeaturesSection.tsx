@@ -51,7 +51,7 @@ export const FeaturesSection = ({ features, onFeatureClick }: FeaturesSectionPro
         >
           <h2 className="text-4xl font-bold mb-4 text-white">why choose rabita?</h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            pioneering the future of decentralized engagement, as endorsed by <a href="https://www.binance.com/en/square/post/21262724104305" className="text-primary hover:text-primary-light transition-colors">cz</a>
+            pioneering the future of decentralized engagement, inspired by <a target="_blank" href="https://www.binance.com/en/square/post/21262724104305" className="text-primary hover:text-primary-light transition-colors">CZ</a>
           </p>
         </motion.div>
 
