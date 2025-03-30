@@ -350,7 +350,7 @@ export const useConversation = (contact: KOLProfile | null) => {
 
     useEffect(() => {
         if (messages) {
-            const parsedMessages: Message[] = messages.conversation.map(message => ({
+            const parsedMessages: Message[] = messages.conversation.map((message: any) => ({
                 id: parseInt(message.messageId),
                 senderId: message.sender,
                 receiverId: message.kol,
@@ -360,7 +360,7 @@ export const useConversation = (contact: KOLProfile | null) => {
                 isTransactionProcessed: true,
                 delivered: true
             }));
-            const respondedMessages = messages.conversation.filter(message => message.message.status === "RESPONDED").map(message => ({
+            const respondedMessages = messages.conversation.filter((message: any) => message.message.status === "RESPONDED").map((message: any) => ({
                 id: parseInt(message.messageId)+9999,
                 senderId: message.kol,
                 receiverId: message.sender,

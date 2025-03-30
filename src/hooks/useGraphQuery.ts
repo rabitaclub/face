@@ -19,6 +19,16 @@ interface UseGraphQueryOptions<TData> extends Omit<UseQueryOptions<TData, Error>
   apiEndpoint?: string;
   // Optional API key for authorization
   apiKey?: string;
+  // Optional refetch interval
+  refetchInterval?: number;
+  // Optional refetch on mount
+  refetchOnMount?: boolean;
+  // Optional refetch on window focus
+  refetchOnWindowFocus?: boolean;
+  // Optional refetch on revalidate
+  refetchOnRevalidate?: boolean;
+  // Optional enabled
+  enabled?: boolean;
 }
 
 /**
