@@ -31,7 +31,7 @@ export const usePGPKeys = (address: string) => {
     );
 
     useEffect(() => {
-        if (pgpKeys) {
+        if (pgpKeys && pgpKeys.senderPGPKeys.length > 0) {
             console.debug('pgpKeys', pgpKeys);
             setPublicKey(pgpKeys.senderPGPKeys[0].pgpPublicKey);
             setPgpNonce(pgpKeys.senderPGPKeys[0].pgpNonce);

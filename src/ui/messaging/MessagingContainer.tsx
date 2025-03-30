@@ -17,6 +17,8 @@ import { useIsClient } from '@/hooks/useIsClient';
 import { Address } from 'viem';
 import { useMessaging } from '@/hooks/useMessaging';
 import { Button } from '@/components/ui/Button';
+import { useActiveWallet } from '@/hooks/useActiveWallet';
+import CustomConnect from '@/components/CustomConnect';
 interface MessagingContainerProps {
     initialKolAddress?: `0x${string}`;
 }
@@ -47,6 +49,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
     const [isInitializing, setIsInitializing] = useState(true);
     const [isChatMaximized, setIsChatMaximized] = useState(false);
     const isClient = useIsClient();
+    const { address } = useActiveWallet();
     const router = useRouter();
 
     const { isInitialized, generateKeys, isGeneratingKeys: isMessagingLoading } = useMessaging()
@@ -174,8 +177,25 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                 <p className="text-gray-500">connect with KOLs securely</p>
             </div>
             
-            {!isInitialized && (
-                <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
+            {!address && (
+                <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-4">
+                    <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-sm border border-gray-100">
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                                <MessageSquare size={32} className="text-primary" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-800">Connect your wallet</h2>
+                            <p className="text-sm text-gray-500">
+                                Connect your wallet to start messaging with KOLs
+                            </p>
+                            <CustomConnect />
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {!isInitialized && address && (
+                <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-4">
                     <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-sm border border-gray-100">
                         <div className="text-center space-y-4">
                             <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
@@ -200,7 +220,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                 </div>
             )}
             
-            {isInitialized && (
+            {isInitialized && address && (
                 <div 
                     ref={containerRef} 
                     className={cn(

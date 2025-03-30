@@ -7,18 +7,6 @@ import { useActiveWallet } from "@/hooks/useActiveWallet";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { isConnected } = useActiveWallet()
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkIfMobile = () => {
-      const breakpoint = 1024; // This is typically the 'lg' breakpoint in Tailwind
-      setIsMobile(window.innerWidth < breakpoint);
-    };
-    
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
 
   return (
     <div className="flex h-screen font-sans bg-[var(--background)]">
@@ -26,11 +14,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300`}
       >
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 pt-6" style={
-          {
-            paddingBottom: isConnected && isMobile ? 'calc(var(--bottom-nav-height) + 1rem)' : '16px'
-          }
-        }>
+        <main className="flex-1 overflow-y-auto p-4 pt-6">
           {children}
         </main>
       </div>

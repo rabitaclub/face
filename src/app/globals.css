@@ -13,6 +13,11 @@
   --secondary: #ea5455;
   --accent: #fffff0;
   
+  /* Viewport and keyboard variables */
+  --viewport-height: 100vh;
+  --keyboard-height: 0px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  
   /* Navigation measurements */
   --sidebar-width: 240px;
   --bottom-nav-height: 64px;
@@ -101,14 +106,40 @@
 body {
   background: var(--background);
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  height: 100%;
+  position: fixed;
+  width: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none; /* Prevent pull-to-refresh */
+}
+
+/* Utility classes for viewport height */
+.h-viewport {
+  height: var(--viewport-height);
+}
+
+.h-viewport-safe {
+  height: calc(var(--viewport-height) - var(--safe-area-bottom));
+}
+
+/* Use this class to prevent content shift with keyboard */
+.keyboard-aware {
+  transition: transform 0.15s ease-out;
+}
+
+/* Class applied when keyboard is visible */
+.keyboard-visible {
+  position: fixed !important;
+  z-index: 1000;
 }
 
 /* Mobile padding adjustment for bottom navigation */
-/* @media (max-width: 1024px) {
+@media (max-width: 1024px) {
   main {
     padding-bottom: calc(var(--bottom-nav-height) + 1rem);
   }
-} */
+}
 
 .sidebar-container {
   width: var(--sidebar-width);
