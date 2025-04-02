@@ -1,0 +1,38 @@
+{
+  "name": "Rabita",
+  "short_name": "Rabita",
+  "description": "Decentralized Connections Marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Home",
+      "url": "/"
+    }
+  ],
+  "categories": ["social", "blockchain", "networking", "productivity"],
+  "lang": "en-US"
+} 

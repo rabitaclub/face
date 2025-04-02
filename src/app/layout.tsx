@@ -5,6 +5,7 @@ import AppShell from "@/components/AppShell";
 import "./globals.css";
 import Providers from "./providers";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,10 +19,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: `%s | ${AppConfig.name}`,
-    default: `${AppConfig.name} | ${AppConfig.description}`,
+    template: AppConfig.seo?.titleTemplate || `%s | ${AppConfig.name}`,
+    default: AppConfig.seo?.defaultTitle || `${AppConfig.name} | ${AppConfig.description}`,
   },
-  description: AppConfig.longDescription || AppConfig.description,
+  description: AppConfig.seoDescription || AppConfig.longDescription || AppConfig.description,
   keywords: AppConfig.keywords,
   authors: AppConfig.authors,
   creator: AppConfig.creator,
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     url: AppConfig.url,
     siteName: AppConfig.name,
     title: AppConfig.name,
-    description: AppConfig.longDescription || AppConfig.description,
+    description: AppConfig.seoDescription || AppConfig.longDescription || AppConfig.description,
     images: [
       {
         url: `${AppConfig.url}${AppConfig.images.background}`,
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: `${AppConfig.name} - ${AppConfig.description}`,
-    description: AppConfig.longDescription || AppConfig.description,
+    description: AppConfig.seoDescription || AppConfig.longDescription || AppConfig.description,
     images: [`${AppConfig.url}${AppConfig.images.twitter}`],
     creator: "@rabitaclub",
     site: "@rabitaclub",
@@ -66,6 +67,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
@@ -78,7 +80,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(AppConfig.url),
   alternates: {
     canonical: '/',
-    languages: {
+    languages: AppConfig.seo?.alternateLocales?.reduce((acc, locale) => {
+      acc[locale] = `/${locale}`;
+      return acc;
+    }, {} as Record<string, string>) || {
       'en-US': '/en-US',
     },
   },
@@ -91,6 +96,29 @@ export const metadata: Metadata = {
     google: 'google-site-verification-code', // Replace with actual code when available
   },
   category: 'technology',
+  referrer: 'origin-when-cross-origin',
+  themeColor: AppConfig.colors?.primary || '#3B82F6',
+  colorScheme: 'dark light',
+  formatDetection: {
+    telephone: true,
+    date: true,
+    address: true,
+    email: true,
+    url: true,
+  },
+};
+
+// Generate structured data JSON-LD for the organization
+const structuredData = AppConfig.seo?.structured ? {
+  '@context': 'https://schema.org',
+  ...AppConfig.seo.structured
+} : {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: AppConfig.name,
+  url: AppConfig.url,
+  logo: `${AppConfig.url}${AppConfig.images.logo}`,
+  sameAs: Object.values(AppConfig.socials || {})
 };
 
 export default function RootLayout({
@@ -99,7 +127,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang={AppConfig.locale?.split('-')[0] || "en"}>
+      <head>
+        <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no" />
+        <meta name="theme-color" content={AppConfig.colors?.primary || '#3B82F6'} />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="canonical" href={AppConfig.url} />
+        
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData)
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -107,6 +149,30 @@ export default function RootLayout({
           <ToastContainer />
           <AppShell>{children}</AppShell>
         </Providers>
+        
+        {/* Analytics Script - Only add if ID exists */}
+        {AppConfig.seo?.googleAnalyticsId && (
+          <>
+            <Script
+              strategy="afterInteractive"
+              src={`https://www.googletagmanager.com/gtag/js?id=${AppConfig.seo.googleAnalyticsId}`}
+            />
+            <Script
+              id="google-analytics"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${AppConfig.seo.googleAnalyticsId}', {
+                    page_path: window.location.pathname,
+                  });
+                `,
+              }}
+            />
+          </>
+        )}
       </body>
     </html>
   );

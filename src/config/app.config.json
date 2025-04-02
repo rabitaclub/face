@@ -1,18 +1,19 @@
 {
-    "name": "rabita",
+    "name": "Rabita",
     "slug": "rabita-club",
     "version": "1.0.0",
     "url": "https://rabita.club",
-    "description": "decentralized connections marketplace",
-    "longDescription": "rabita is a decentralized platform connecting people through a blockchain-powered marketplace for professional networking and collaborative opportunities.",
+    "description": "Decentralized Connections Marketplace",
+    "longDescription": "Rabita is a decentralized platform connecting people through a blockchain-powered marketplace for professional networking and collaborative opportunities.",
+    "seoDescription": "Discover Rabita - the leading decentralized connections marketplace. Connect, collaborate, and grow your network on the blockchain-powered professional platform.",
     "socials": {
         "x": "https://x.com/rabitaclub",
         "github": "https://github.com/0xrobinr/rabita-app",
         "linkedin": "https://linkedin.com/company/rabita-club"
     },
-    "keywords": ["connections", "marketplace", "rabita", "network", "decentralized", "social", "web3", "blockchain", "crypto", "professional networking", "BSC"],
-    "authors": [{ "name": "robin rajput", "url": "https://github.com/0xrobinr" }],
-    "creator": "team rabita",
+    "keywords": ["connections marketplace", "rabita", "decentralized network", "blockchain social", "web3 platform", "crypto networking", "professional connections", "BSC marketplace", "blockchain networking", "decentralized platform", "digital networking"],
+    "authors": [{ "name": "Robin Rajput", "url": "https://github.com/0xrobinr" }],
+    "creator": "Team Rabita",
     "explorer": "https://testnet.bscscan.com",
     "images": {
         "favicon": "/favicon.ico",
@@ -29,5 +30,22 @@
         "accent": "#8B5CF6",
         "background": "#121212"
     },
-    "locale": "en-US"
+    "locale": "en-US",
+    "seo": {
+        "googleAnalyticsId": "G-64WSHY78R4",
+        "structured": {
+            "type": "Organization",
+            "name": "Rabita",
+            "url": "https://rabita.club",
+            "logo": "https://rabita.club/logo_icon.png",
+            "sameAs": [
+                "https://x.com/rabitaclub",
+                "https://github.com/0xrobinr/rabita-app",
+                "https://linkedin.com/company/rabita-club"
+            ]
+        },
+        "alternateLocales": ["en-US"],
+        "defaultTitle": "Rabita | Decentralized Connections Marketplace",
+        "titleTemplate": "%s | Rabita"
+    }
 }

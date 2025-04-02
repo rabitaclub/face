@@ -1,0 +1,10 @@
+# https://rabita.club/robots.txt
+# Allow crawling of all content
+User-agent: *
+Allow: /
+
+# Sitemap declaration
+Sitemap: https://rabita.club/sitemap.xml
+
+# Crawl delay directive for rate limiting
+Crawl-delay: 1 
