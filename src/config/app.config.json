@@ -21,7 +21,7 @@
         "background": "/rabita-bg.png",
         "appleIcon": "/apple-icon.png",
         "og": "/og-image.png",
-        "twitter": "/twitter-image.png"
+        "twitter": "/rabita-bg.png"
     },
     "colors": {
         "primary": "#3B82F6",
