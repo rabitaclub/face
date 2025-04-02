@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     description: AppConfig.longDescription || AppConfig.description,
     images: [
       {
-        url: `${AppConfig.url}${AppConfig.images.og}`,
+        url: `${AppConfig.url}${AppConfig.images.background}`,
         width: 1200,
         height: 630,
         alt: AppConfig.name,
