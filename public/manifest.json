@@ -1,7 +1,7 @@
 {
-  "name": "Rabita",
-  "short_name": "Rabita",
-  "description": "Decentralized Connections Marketplace",
+  "name": "rabita",
+  "short_name": "rabita",
+  "description": "decentralized connections marketplace",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#121212",
