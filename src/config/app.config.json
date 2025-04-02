@@ -1,10 +1,10 @@
 {
-    "name": "Rabita",
+    "name": "rabita",
     "slug": "rabita-club",
     "version": "1.0.0",
     "url": "https://rabita.club",
-    "description": "Decentralized Connections Marketplace",
-    "longDescription": "Rabita is a decentralized platform connecting people through a blockchain-powered marketplace for professional networking and collaborative opportunities.",
+    "description": "decentralized connections marketplace",
+    "longDescription": "rabita is a decentralized platform connecting people through a blockchain-powered marketplace for professional networking and collaborative opportunities.",
     "seoDescription": "Discover Rabita - the leading decentralized connections marketplace. Connect, collaborate, and grow your network on the blockchain-powered professional platform.",
     "socials": {
         "x": "https://x.com/rabitaclub",
