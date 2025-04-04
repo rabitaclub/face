@@ -24,20 +24,8 @@ export default function BottomNavigation() {
         const isKeyboardVisible = viewportHeight < windowHeight * 0.8;
         setKeyboardVisible(isKeyboardVisible);
         
-        if (navRef.current) {
-          // Calculate position relative to visual viewport bottom
-          const offsetFromBottom = windowHeight - viewportHeight - visualViewport.offsetTop;
-
-          if (isKeyboardVisible) {
-            // When keyboard is visible, keep navbar at the bottom of the visual viewport
-            navRef.current.style.position = 'fixed';
-            navRef.current.style.bottom = `${offsetFromBottom}px`;
-          } else {
-            // When keyboard is hidden, reset to normal fixed position
-            navRef.current.style.position = 'fixed';
-            navRef.current.style.bottom = '0';
-          }
-        }
+        // We no longer manipulate the position directly
+        // Just set the state and let CSS handle the visibility
       };
 
       // Initial positioning
@@ -57,12 +45,11 @@ export default function BottomNavigation() {
   return (
     <div 
       ref={navRef}
-      className={`lg:hidden fixed left-0 right-0 z-30 bg-[var(--foreground)] text-[var(--background)] border-t border-[var(--background)]/20 transition-transform ${keyboardVisible ? 'keyboard-visible' : ''}`}
+      className={`lg:hidden fixed left-0 right-0 z-30 bg-[var(--foreground)] text-[var(--background)] border-t border-[var(--background)]/20 transition-all duration-300 ${keyboardVisible ? 'translate-y-full' : ''}`}
       style={{
         bottom: 0,
         height: "var(--bottom-nav-height)",
-        transform: "translateZ(0)", // Force GPU acceleration
-        willChange: "transform, bottom",
+        willChange: "transform",
         backfaceVisibility: "hidden"
       }}
     >

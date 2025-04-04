@@ -9,6 +9,7 @@ import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { OnboardingSection } from "@/components/home/OnboardingSection";
 import { Footer } from "@/components/home/Footer";
 import { FeatureModal } from "@/components/home/FeatureModal";
+import { TopKOLsSection } from "@/components/home/TopKOLsSection";
 
 interface Feature {
   title: string;
@@ -43,6 +44,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background-dark to-background">
       <HeroSection />
+      <TopKOLsSection />
       <FeaturesSection 
         features={features}
         onFeatureClick={(feature) => {

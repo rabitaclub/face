@@ -55,8 +55,7 @@ export default function SecureImage({
         className
       )}>
         <div className="flex flex-col items-center gap-2 p-4 text-center">
-          <FiAlertCircle className="w-6 h-6 text-destructive" />
-          <span className="text-sm text-destructive">{error}</span>
+          <User className="text-gray-400" size={24} />
         </div>
       </div>
     );
