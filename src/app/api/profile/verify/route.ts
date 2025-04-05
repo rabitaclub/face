@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Wallet address is required' }, { status: 400 });
     }
     
-    if (!ethers.utils.isAddress(walletAddress)) {
+    if (!ethers.isAddress(walletAddress)) {
       return NextResponse.json({ error: 'Invalid wallet address format' }, { status: 400 });
     }
 

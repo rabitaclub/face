@@ -44,7 +44,7 @@ export function useTwitterVerification() {
       return null;
     }
 
-    if (!ethers.utils.isAddress(address)) {
+    if (!ethers.isAddress(address)) {
       setError('Invalid wallet address format');
       return null;
     }

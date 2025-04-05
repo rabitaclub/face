@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { AbiCoder, getBytes, isAddress, hexlify, randomBytes, keccak256, Wallet, verifyMessage, computeAddress } from 'ethers';
 
 // Define types for structured signature data
 export interface SignaturePayload {
@@ -54,7 +55,7 @@ export async function generateProfileSignature(
     }
 
     // Validate inputs
-    if (!ethers.utils.isAddress(walletAddress)) {
+    if (!isAddress(walletAddress)) {
       throw new Error('Invalid wallet address format');
     }
     
@@ -63,11 +64,11 @@ export async function generateProfileSignature(
     }
 
     // Create a wallet instance from the private key
-    const wallet = new ethers.Wallet(privateKey);
+    const wallet = new Wallet(privateKey);
     
     // Security enhancements
-    const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32));
-    const nonce = ethers.utils.hexlify(ethers.utils.randomBytes(16));
+    const salt = hexlify(randomBytes(32));
+    const nonce = hexlify(randomBytes(16));
     const timestamp = Math.floor(Date.now() / 1000);
     const domain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'rabita.club';
     
@@ -88,8 +89,9 @@ export async function generateProfileSignature(
     
     // Generate a hash of the structured data
     // This uses EIP-712 inspired approach but simplified for readability
-    const messageHash = ethers.utils.keccak256(
-      ethers.utils.defaultAbiCoder.encode(
+    const abiCoder = new AbiCoder();
+    const messageHash = keccak256(
+      abiCoder.encode(
         ['address', 'string', 'bytes32', 'string', 'bytes16', 'uint256', 'string', 'uint256'],
         [
           payload.walletAddress,
@@ -105,7 +107,7 @@ export async function generateProfileSignature(
     );
     
     // Sign the hash using the private key
-    const signature = await wallet.signMessage(ethers.utils.arrayify(messageHash));
+    const signature = await wallet.signMessage(getBytes(messageHash));
     
     // Return the signature with a structured format
     // Separate public data from cryptographic metadata
@@ -176,14 +178,15 @@ export function verifyProfileSignature(signatureData: string): boolean {
     }
     
     // Verify that wallet address is properly formed
-    if (!ethers.utils.isAddress(walletAddress)) {
+    if (!isAddress(walletAddress)) {
       console.error('Invalid wallet address in signature data');
       return false;
     }
     
     // Recreate the message hash
-    const messageHash = ethers.utils.keccak256(
-      ethers.utils.defaultAbiCoder.encode(
+    const abiCoder = new AbiCoder();
+    const messageHash = keccak256(
+      abiCoder.encode(
         ['address', 'string', 'bytes32', 'string', 'bytes16', 'uint256', 'string', 'uint256'],
         [
           walletAddress.toLowerCase(),
@@ -199,14 +202,14 @@ export function verifyProfileSignature(signatureData: string): boolean {
     );
     
     // Recover the signer's address from the signature
-    const recoveredAddress = ethers.utils.verifyMessage(
-      ethers.utils.arrayify(messageHash),
+    const recoveredAddress = verifyMessage(
+      getBytes(messageHash),
       signature
     );
     
     // Verify if the recovered address matches our verifier address
     const verifierAddress = process.env.SIGNATURE_VERIFICATION_ADDRESS || 
-      ethers.utils.computeAddress(process.env.SIGNATURE_PRIVATE_KEY || '');
+      computeAddress(process.env.SIGNATURE_PRIVATE_KEY || '');
     
     return recoveredAddress.toLowerCase() === verifierAddress.toLowerCase();
   } catch (error) {
@@ -230,25 +233,26 @@ export async function signToEncryptMessage(message: string): Promise<string> {
     }
 
     // Create a wallet instance from the private key
-    const wallet = new ethers.Wallet(privateKey);
+    const wallet = new Wallet(privateKey);
     
     // Use smaller but still secure parameters
     // Use 16 bytes (128 bits) for salt - still cryptographically strong
-    const salt = ethers.utils.hexlify(ethers.utils.randomBytes(16));
+    const salt = hexlify(randomBytes(16));
     
     // Generate a random 12-byte IV for AES-GCM (96 bits is the recommended size)
-    const iv = ethers.utils.hexlify(ethers.utils.randomBytes(12));
+    const iv = hexlify(randomBytes(12));
     
     // Create a unique message to sign for key derivation
-    const signatureMessage = ethers.utils.keccak256(
-      ethers.utils.defaultAbiCoder.encode(
+    const abiCoder = new AbiCoder();
+    const signatureMessage = keccak256(
+      abiCoder.encode(
         ['string', 'bytes16', 'bytes12'],
         ['ENCRYPT', salt, iv]
       )
     );
     
     // Sign the message to get a deterministic signature
-    const signature = await wallet.signMessage(ethers.utils.arrayify(signatureMessage));
+    const signature = await wallet.signMessage(getBytes(signatureMessage));
     
     // Use crypto for encryption
     const crypto = require('crypto');
@@ -260,7 +264,7 @@ export async function signToEncryptMessage(message: string): Promise<string> {
     const cipher = crypto.createCipheriv(
       'aes-256-gcm', 
       encryptionKey, 
-      Buffer.from(ethers.utils.arrayify(iv))
+      Buffer.from(getBytes(iv))
     );
     
     // Encrypt the message
@@ -273,8 +277,8 @@ export async function signToEncryptMessage(message: string): Promise<string> {
     // Combine all binary data into a single compact buffer
     // Format: 1 byte version + 16 bytes salt + 12 bytes IV + 16 bytes authTag + encrypted data
     const versionByte = Buffer.from([1]); // Version 1
-    const saltBuffer = Buffer.from(ethers.utils.arrayify(salt));
-    const ivBuffer = Buffer.from(ethers.utils.arrayify(iv));
+    const saltBuffer = Buffer.from(getBytes(salt));
+    const ivBuffer = Buffer.from(getBytes(iv));
     
     // Combine all parts into a single buffer
     const packageBuffer = Buffer.concat([
@@ -310,7 +314,7 @@ export async function signToDecryptMessage(encryptedPackage: string): Promise<st
     }
 
     // Create a wallet instance from the private key
-    const wallet = new ethers.Wallet(privateKey);
+    const wallet = new Wallet(privateKey);
     
     // Extract components from the buffer
     const version = packageBuffer[0];
@@ -321,21 +325,22 @@ export async function signToDecryptMessage(encryptedPackage: string): Promise<st
     }
     
     // Extract binary components
-    const salt = ethers.utils.hexlify(packageBuffer.slice(1, 17));        // 16 bytes
-    const iv = ethers.utils.hexlify(packageBuffer.slice(17, 29));         // 12 bytes
+    const salt = hexlify(packageBuffer.slice(1, 17));        // 16 bytes
+    const iv = hexlify(packageBuffer.slice(17, 29));         // 12 bytes
     const authTag = packageBuffer.slice(29, 45);                          // 16 bytes
     const encryptedData = packageBuffer.slice(45);                        // remainder
     
     // Recreate the signature message that was used for encryption
-    const signatureMessage = ethers.utils.keccak256(
-      ethers.utils.defaultAbiCoder.encode(
+    const abiCoder = new AbiCoder();
+    const signatureMessage = keccak256(
+      abiCoder.encode(
         ['string', 'bytes16', 'bytes12'],
         ['ENCRYPT', salt, iv]
       )
     );
     
     // Sign the message to get the same deterministic signature used for encryption
-    const signature = await wallet.signMessage(ethers.utils.arrayify(signatureMessage));
+    const signature = await wallet.signMessage(getBytes(signatureMessage));
     
     // Use the signature as the key material for decryption
     const crypto = require('crypto');
@@ -347,7 +352,7 @@ export async function signToDecryptMessage(encryptedPackage: string): Promise<st
     const decipher = crypto.createDecipheriv(
       'aes-256-gcm', 
       decryptionKey, 
-      Buffer.from(ethers.utils.arrayify(iv))
+      Buffer.from(getBytes(iv))
     );
     
     // Set the authentication tag

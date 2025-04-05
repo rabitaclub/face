@@ -276,7 +276,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       return NextResponse.json(
         { 
           error: 'Permission denied', 
-          message: 'Twitter verification required to upload files',
+          message: 'X verification required to upload files',
           uploadId 
         },
         { status: 403 }
