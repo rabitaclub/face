@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import KOLCard, { ShimmerKOLCard } from '@/components/kol/KOLCard';
 import { KOLProfile } from '@/types/profile';
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 import { useIsMobile } from '@/hooks/useIsClient';
 import { FiLoader } from 'react-icons/fi';
 import { FileScanIcon, ScanSearchIcon } from 'lucide-react';
@@ -139,6 +139,7 @@ export const TopKOLsSection = () => {
     // Map the TrendingKOLProfile to EnhancedKOL format
     return {
       ...kol,
+      formattedFee: formatEther(kol.fee),
       metrics: {
         messages: kol.metrics.messageCount || 0,
         earnings: (kol.metrics.totalFees / BigInt(10**18)).toString() || '0',
@@ -231,6 +232,7 @@ export const TopKOLsSection = () => {
                     kol={kol} 
                     showRank={index < 3} 
                     showTrend={true} 
+                    showAverageResponseTime={false}
                     animated={true}
                   />
                 </motion.div>

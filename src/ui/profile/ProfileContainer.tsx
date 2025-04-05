@@ -9,6 +9,7 @@ import CustomConnect from '@/components/CustomConnect';
 import KOLRegistrationView from './KOLRegistrationView';
 import KOLProfileView from '@/ui/profile/KOLProfileView';
 import { formatEther } from 'viem';
+import { useTrendingKOLByAddress } from '@/hooks/useTrendingKOLs';
 
 export default function ProfileContainer() {
   const { address, isConnected } = useActiveWallet();
@@ -23,16 +24,17 @@ export default function ProfileContainer() {
     totalPayments: "0",
     totalFollowers: 0
   });
+  const { trendingKOL, isLoading: isTrendingKOLLoading } = useTrendingKOLByAddress(address);
 
   useEffect(() => {
-    if (hasProfileData && address) {
+    if (hasProfileData && address && trendingKOL) {
       setMetrics({
-        totalMessages: Math.floor(Math.random() * 50),
-        totalPayments: formatEther(BigInt(Math.floor(Math.random() * 5 * 1e18))),
-        totalFollowers: Math.floor(Math.random() * 100)
+        totalMessages: trendingKOL.metrics.messageCount,
+        totalPayments: formatEther(trendingKOL.metrics.totalFees),
+        totalFollowers: trendingKOL.metrics.activeConversations
       });
     }
-  }, [hasProfileData, address]);
+  }, [hasProfileData, address, trendingKOL]);
 
   if (!isConnected) {
     return (

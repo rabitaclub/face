@@ -295,6 +295,7 @@ export interface KOLCardProps {
   kol: EnhancedKOLProfile;
   index?: number;
   showRank?: boolean;
+  showAverageResponseTime?: boolean;
   showTrend?: boolean;
   showActions?: boolean;
   isLoading?: boolean;
@@ -308,6 +309,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
   kol, 
   index = 0, 
   showRank = true,
+  showAverageResponseTime = true,
   showTrend = true,
   showActions = true,
   isLoading: externalLoading,
@@ -550,7 +552,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
           </div>
           
           {/* Response Time Display */}
-          <div className="mt-3 sm:mt-4 relative">
+          { showAverageResponseTime && <div className="mt-3 sm:mt-4 relative">
             <motion.div 
               className="rounded-md border border-primary/10 overflow-hidden bg-gray-50 p-3"
               onHoverStart={() => setShowResponseInfo(true)}
@@ -672,7 +674,8 @@ const KOLCard: React.FC<KOLCardProps> = ({
                 )}
               </AnimatePresence>
             </motion.div>
-          </div>
+            </div>
+          }
           
           {/* Interactive Trend Display */}
           {showTrend && (

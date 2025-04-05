@@ -11,6 +11,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import { useKOLProfileData } from '@/hooks/useContractData';
 import { useConversation } from './hooks/useChat';
 import { Message } from './Message';
+import { useActiveWallet } from '@/hooks/useActiveWallet';
 
 interface ChatPanelProps {
     contact: KOLProfile;
@@ -46,6 +47,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     const [charCount, setCharCount] = useState(0);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const { profile: kolProfile, isKOL } = useKOLProfileData(contact.wallet)
+
+    const { address } = useActiveWallet();
+
+    const isSameUser = address === contact.wallet;
 
     const {
         publicKey,
@@ -373,7 +378,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
             
             {/* Message input */}
-            <div className="flex-none p-4 border-t border-gray-200">
+            {
+                isSameUser && <div className="flex-none p-4 border-t border-gray-200">
+                    <div className="text-xs text-gray-500 text-center">
+                        You cannot send messages to yourself.
+                    </div>
+                </div>
+            }
+            { !isSameUser && <div className="flex-none p-4 border-t border-gray-200">
                 { isInitialized && (publicKey !== null || publicKey !== "") && !isKeysLoading && <div className="flex flex-col gap-2">
                     <div className="relative">
                         <div className="flex-1 flex flex-col">
@@ -442,6 +454,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 </div>
                 }
             </div>
+            }
         </div>
     );
 };
