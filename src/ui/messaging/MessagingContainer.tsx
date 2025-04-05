@@ -160,7 +160,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
 
     if (!isClient || isInitializing) {
         return (
-            <div className="h-[calc(100vh-var(--bottom-nav-height))] flex flex-col">
+            <div className="h-full flex flex-col">
                 <div className="shadow-sm py-4 px-6">
                     <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
                     <div className="h-4 w-32 bg-gray-200 rounded mt-2 animate-pulse" />
@@ -171,7 +171,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
     }
 
     return (
-        <div className="h-[calc(100vh-var(--bottom-nav-height))] flex flex-col overflow-hidden">
+        <div className="h-full flex flex-col overflow-hidden">
             <div className="flex-none shadow-sm py-4 px-6">
                 <h1 className="text-2xl font-bold text-gray-800">connections marketplace</h1>
                 <p className="text-gray-500">connect with KOLs securely</p>
@@ -265,7 +265,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                     <div 
                         className={cn(
                             "h-full bg-gray-50 overflow-hidden",
-                            isMobile && "fixed inset-0 z-50",
+                            isMobile && "fixed inset-0 z-0",
                             layoutMetrics.isResizing && "pointer-events-none",
                             isChatMaximized && "fixed inset-0 z-50"
                         )}

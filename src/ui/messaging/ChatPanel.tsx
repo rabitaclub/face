@@ -379,13 +379,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             
             {/* Message input */}
             {
-                isSameUser && <div className="flex-none p-4 border-t border-gray-200">
+                !isSameUser && <div className="flex-none p-4 border-t border-gray-200">
                     <div className="text-xs text-gray-500 text-center">
                         You cannot send messages to yourself.
                     </div>
                 </div>
             }
-            { !isSameUser && <div className="flex-none p-4 border-t border-gray-200">
+            { isSameUser && <div className="flex-none p-4 border-t border-gray-200">
                 { isInitialized && (publicKey !== null || publicKey !== "") && !isKeysLoading && <div className="flex flex-col gap-2">
                     <div className="relative">
                         <div className="flex-1 flex flex-col">

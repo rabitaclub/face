@@ -8,7 +8,7 @@ export default function KolConversationPage() {
   const kolAddress = params.kolAddress as string;
 
   return (
-    <div className="h-full flex flex-col w-full bg-white rounded-lg">
+    <div className="h-full min-h-screen flex flex-col w-full bg-white rounded-lg">
       <MessagingContainer initialKolAddress={kolAddress as `0x${string}`} />
     </div>
   );
