@@ -2,6 +2,9 @@
   "name": "rabita-app",
   "version": "0.1.0",
   "private": true,
+  "resolutions": {
+    "elliptic": "6.6.1"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -36,7 +39,6 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
-    "elliptic": "6.6.1",
     "eth-crypto": "2.7.0",
     "ethers": "6.13.5",
     "framer-motion": "^12.6.2",
