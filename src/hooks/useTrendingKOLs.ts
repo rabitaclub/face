@@ -50,6 +50,11 @@ interface TrendingKOLData {
   handle: string;
   platform: string;
   fee: string;
+  kolData: {
+    tags: string;
+    description: string;
+    profileHash: string;
+  };
   recentMessages: MessageData[];
   activePairsAsKOL: ActivePair[];
 }
@@ -58,7 +63,7 @@ interface TrendingKOLData {
  * Interface for the complete trending KOLs GraphQL response
  */
 interface TrendingKOLsResponse {
-  kolRegistereds: TrendingKOLData[];
+  kolregistereds: TrendingKOLData[];
 }
 
 /**
@@ -73,6 +78,11 @@ interface TrendingKOLsVariables {
  * Enhanced KOL profile with trending metrics
  */
 export interface TrendingKOLProfile extends KOLProfile {
+  kolData: {
+    tags: string;
+    description: string;
+    profileHash: string;
+  };
   metrics: {
     messageCount: number;
     totalFees: bigint;
@@ -190,11 +200,11 @@ export function useTrendingKOLs({
   
   // Process raw data into enhanced KOL profiles with metrics
   useEffect(() => {
-    if (!data?.kolRegistereds) return;
+    if (!data?.kolregistereds) return;
     
     try {
-      const processed = data.kolRegistereds.map(kol => {
-        // Calculate metrics from messages
+      const processed = data.kolregistereds.map(kol => {
+        console.debug('kol', kol);
         const messageCount = kol.recentMessages?.length || 0;
         const totalFees = (kol.recentMessages || []).reduce(
           (sum, msg) => sum + BigInt(msg.fee || "0"), 
@@ -218,7 +228,6 @@ export function useTrendingKOLs({
           dailyActivity[key] = 0;
         }
         
-        // Fill with actual data
         (kol.recentMessages || []).forEach(msg => {
           const dateKey = formatDateKey(msg.blockTimestamp);
           dailyActivity[dateKey] = (dailyActivity[dateKey] || 0) + 1;
@@ -255,6 +264,7 @@ export function useTrendingKOLs({
           profileIpfsHash: null,
           verified: true, // Assuming trending KOLs are verified
           exists: true,
+          kolData: kol.kolData,
           metrics: {
             messageCount,
             totalFees,
@@ -265,6 +275,7 @@ export function useTrendingKOLs({
         } as TrendingKOLProfile;
       });
       
+      console.debug('processed', processed);
       setProcessedKOLs(processed);
     } catch (err) {
       console.error("Error processing trending KOLs data:", err);

@@ -182,7 +182,11 @@ export type EnhancedKOLProfile = KOLProfile & {
     growth: number 
   },
   activity: number[],
-  tags?: string
+  kolData: {
+    tags: string;
+    description: string;
+    profileHash: string;
+  }
 };
 
 // Shimmer effect component
@@ -340,7 +344,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
   const [avgResponseHours] = useState(3 + (Math.floor(Math.random() * 40))); // Random between 3-43 hours for demo
   
   // Mock expertise tags
-  const expertiseTags = kol.tags ? kol.tags.split(',').slice(0, 3) : [];
+  const expertiseTags = kol.kolData.tags ? kol.kolData.tags.split(',').slice(0, 3) : [];
   
   // Calculate response time percentage (assuming 72hrs is maximum for visualization)
   useEffect(() => {
@@ -459,7 +463,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
           <div className="relative flex-shrink-0">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-primary/20">
               <SecureImage
-                encryptedData={kol.profileIpfsHash || ''}
+                encryptedData={kol.kolData.profileHash || ''}
                 alt={kol.name}
                 width={64}
                 height={64}

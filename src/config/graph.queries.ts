@@ -2,7 +2,7 @@ import { gql } from '@/lib/fetchGraphData';
 
 export const KOL_SEARCH_QUERY = gql`
   query SearchKols($searchTerm: String!) {
-    kolRegistereds(
+    kolregistereds(
       where: { 
         or: [
           { handle_contains_nocase: $searchTerm },
@@ -213,7 +213,7 @@ export const PGP_KEYS_QUERY = gql`
 
 export const TRENDING_KOLS_QUERY = gql`
 query GetTrendingKOLs($timestampDaysAgo: Int!, $limit: Int = 20) {
-  kolRegistereds(
+  kolregistereds(
     first: $limit,
     orderBy: blockTimestamp,
     orderDirection: desc
@@ -224,6 +224,12 @@ query GetTrendingKOLs($timestampDaysAgo: Int!, $limit: Int = 20) {
     handle
     platform
     fee
+
+    kolData {
+      tags
+      description
+      profileHash
+    }
     
     messages(where: {blockTimestamp_gt: $timestampDaysAgo}) {
       id
