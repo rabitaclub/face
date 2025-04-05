@@ -98,6 +98,56 @@
             {
                 "indexed": false,
                 "internalType": "string",
+                "name": "profileIpfsHash",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "tags",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            }
+        ],
+        "name": "KOLData",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            }
+        ],
+        "name": "KOLFeeUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
                 "name": "platform",
                 "type": "string"
             },
@@ -121,6 +171,19 @@
             }
         ],
         "name": "KOLRegistered",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            }
+        ],
+        "name": "KOLUnregistered",
         "type": "event"
     },
     {
@@ -357,6 +420,16 @@
                 "type": "string"
             },
             {
+                "internalType": "string",
+                "name": "tags",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            },
+            {
                 "internalType": "bool",
                 "name": "verified",
                 "type": "bool"
@@ -446,6 +519,16 @@
             {
                 "internalType": "string",
                 "name": "_profileIpfsHash",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_tags",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_description",
                 "type": "string"
             },
             {
@@ -560,6 +643,16 @@
                 "type": "string"
             },
             {
+                "internalType": "string",
+                "name": "tags",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            },
+            {
                 "internalType": "bool",
                 "name": "verified",
                 "type": "bool"
@@ -582,6 +675,44 @@
             }
         ],
         "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unregisterKOL",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "_value",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_key",
+                "type": "string"
+            }
+        ],
+        "name": "updateKOLData",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_fee",
+                "type": "uint256"
+            }
+        ],
+        "name": "updateKOLFee",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

@@ -34,7 +34,7 @@ export const OnboardingSection = () => {
   return (
     <section id="onboarding" className="py-16">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-4 text-white">get started</h2>
+        <h2 className="text-3xl font-bold text-center mb-4 text-white">get <span className="text-primary">started</span></h2>
         <p className="text-center text-gray-300 mb-8">follow these simple steps to begin your decentralized connections journey</p>
         
         <div className="bg-background-light rounded-container p-8 border border-border rounded-lg shadow-lg">

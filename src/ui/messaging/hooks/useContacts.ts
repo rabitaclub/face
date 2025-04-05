@@ -40,65 +40,137 @@ export function useContacts(): UseContactsReturn {
 export interface ConversationSummary {
     participantAddress: string;
     lastMessage: Message;
+    kolProfile?: KOLProfile;
+    conversationId?: string;
+    messageCount?: number;
+    isActive?: boolean;
+}
+
+interface GraphConversation {
+    id: string;
+    kol?: string;
+    sender?: string;
     kolProfile?: {
+        id: string;
         handle: string;
         platform: string;
         name: string;
-        wallet: string;
     };
+    lastMessageContent: string;
+    lastMessageSender: string;
+    lastMessageTimestamp: number;
+    messageCount: number;
+    isActive: boolean;
+    updatedAt: number;
+    messages: {
+        id: string;
+        messageIpfsHash: string;
+        fee: string;
+        blockTimestamp: number;
+        message: {
+            status: string;
+            updatedAt: number;
+        };
+    }[];
 }
 
-
-
-function processConversationSummaries(data: GraphQLResponse, userAddress: string): ConversationSummary[] {
+function processConversationSummaries(data: { 
+    senderConversations: GraphConversation[];
+    kolConversations: GraphConversation[];
+}, userAddress: string): ConversationSummary[] {
     try {
         const conversations = new Map<string, ConversationSummary>();
         
-        for (const msg of data.sentMessages ?? []) {
-            const isUserKol = msg.kol === userAddress;
-            const participantAddress = isUserKol ? msg.sender : msg.kol;
-            if (conversations.has(participantAddress)) continue;
+        // Process conversations where user is the sender
+        for (const conversation of data.senderConversations || []) {
+            const participantAddress = conversation.kol || '';
+            if (!participantAddress) continue;
+            
+            const lastMsg = conversation.messages[0];
+            if (!lastMsg) continue;
+
+            const kolProfile: KOLProfile = conversation.kolProfile ? {
+                wallet: conversation.kolProfile.id as `0x${string}`,
+                handle: conversation.kolProfile.handle,
+                platform: conversation.kolProfile.platform,
+                name: conversation.kolProfile.name,
+                fee: BigInt(0),
+                profileIpfsHash: null,
+                verified: false,
+                exists: true
+            } : {
+                wallet: participantAddress as `0x${string}`,
+                handle: '',
+                platform: '',
+                name: '',
+                fee: BigInt(0),
+                profileIpfsHash: null,
+                verified: false,
+                exists: true
+            };
 
             conversations.set(participantAddress, {
                 participantAddress,
+                conversationId: conversation.id,
+                messageCount: conversation.messageCount,
+                isActive: conversation.isActive,
                 lastMessage: {
-                    ...createMessageObject(msg),
-                    senderId: userAddress
+                    id: parseInt(lastMsg.id),
+                    timestamp: new Date(lastMsg.blockTimestamp * 1000),
+                    text: lastMsg.messageIpfsHash,
+                    senderId: userAddress,
+                    receiverId: participantAddress,
+                    kolProfile,
+                    delivered: true,
+                    isTransactionProcessed: true
                 },
-                kolProfile: {
-                    wallet: msg.kolProfile?.id as `0x${string}`,
-                    ...msg.kolProfile
-                } as KOLProfile
+                kolProfile
             });
         }
         
-        for (const msg of data.receivedMessages ?? []) {
-            const participantAddress = msg.sender;
-            const existingConversation = conversations.get(participantAddress);
+        // Process conversations where user is the KOL
+        for (const conversation of data.kolConversations || []) {
+            const participantAddress = conversation.sender || '';
+            if (!participantAddress) continue;
             
-            if (!existingConversation || msg.blockTimestamp > existingConversation.lastMessage.timestamp.getTime()) {
-                let tempMessage = msg;
+            const lastMsg = conversation.messages[0];
+            if (!lastMsg) continue;
+
+            // Only add if this is a newer conversation or we don't have it yet
+            const existingConversation = conversations.get(participantAddress);
+            const newTimestamp = lastMsg.blockTimestamp * 1000;
+            
+            if (!existingConversation || 
+                newTimestamp > existingConversation.lastMessage.timestamp.getTime()) {
                 
-                if (msg.message.status === "RESPONDED") {
-                    const responseMessage = msg.message.responses[0];
-                    if (responseMessage) {
-                        tempMessage = {
-                            ...msg,
-                            messageIpfsHash: responseMessage.responseIpfsHash,
-                            blockTimestamp: responseMessage.responseTimestamp
-                        };
-                    }
-                }
+                // Create a minimal KOLProfile for the sender
+                const kolProfile: KOLProfile = {
+                    wallet: participantAddress as `0x${string}`,
+                    handle: '',
+                    platform: '',
+                    name: '',
+                    fee: BigInt(0),
+                    profileIpfsHash: null,
+                    verified: false,
+                    exists: true
+                };
+                
                 conversations.set(participantAddress, {
                     participantAddress,
+                    conversationId: conversation.id,
+                    messageCount: conversation.messageCount,
+                    isActive: conversation.isActive,
                     lastMessage: {
-                        ...createMessageObject(tempMessage),
-                        receiverId: userAddress
+                        id: Math.floor(Math.random() * 1000000),
+                        timestamp: new Date(newTimestamp),
+                        text: lastMsg.messageIpfsHash,
+                        senderId: participantAddress,
+                        receiverId: userAddress,
+                        kolProfile,
+                        delivered: true,
+                        isTransactionProcessed: true
                     },
-                    kolProfile: {
-                        wallet: msg.kolProfile?.id as `0x${string}`,
-                        ...msg.kolProfile
-                    } as KOLProfile
+                    kolProfile
                 });
             }
         }
@@ -136,26 +208,29 @@ export const useContactList = () => {
     const [contacts, setContacts] = useState<ConversationSummary[]>([]);
     const { address } = useActiveWallet();
 
-    const { data: messages, isLoading: isFetchingMessages } = useGraphQuery<GraphQLResponse>(
-        ['userAddress', address || ''],
+    const { data: conversationData, isLoading: isFetchingMessages } = useGraphQuery<{
+        senderConversations: GraphConversation[];
+        kolConversations: GraphConversation[];
+    }>(
+        ['userConversations', address || ''],
         KOL_MESSAGES_QUERY,
         {
             variables: { userAddress: address || '' },
-            staleTime: 10 * 1000,
-            refetchInterval: 10 * 1000,
+            staleTime: 60 * 1000,
+            refetchInterval: 2 * 60 * 1000,
             refetchOnMount: true,
             refetchOnWindowFocus: true
         }
     );
 
     useEffect(() => {
-        if (messages) {
-            console.debug("messages",messages)
-            const conversationSummaries = processConversationSummaries(messages, address || '');
-            // console.debug("conversationSummaries",conversationSummaries)
+        if (conversationData) {
+            // console.debug("Conversation data", conversationData);
+            const conversationSummaries = processConversationSummaries(conversationData, address || '');
+            // console.debug("Conversation summaries", conversationSummaries);
             setContacts(conversationSummaries);
         }
-    }, [messages, address, isFetchingMessages]);
+    }, [conversationData, address, isFetchingMessages]);
 
     return useMemo(() => ({
         contacts,

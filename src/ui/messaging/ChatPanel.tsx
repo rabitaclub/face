@@ -331,7 +331,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
                 {messages?.map(message => (
                     <ChatMessage
-                        key={message.id}
+                        key={message.text}
                         message={message}
                     />
                 ))}

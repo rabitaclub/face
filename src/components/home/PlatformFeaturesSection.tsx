@@ -39,7 +39,7 @@ export const PlatformFeaturesSection = () => {
     <section className="py-16 bg-background-light/5 relative overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 text-white">platform features</h2>
+          <h2 className="text-4xl font-bold mb-4 text-white">platform <span className="text-primary">features</span></h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             advanced capabilities for seamless kol engagement
           </p>

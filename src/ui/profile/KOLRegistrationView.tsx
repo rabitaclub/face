@@ -27,6 +27,7 @@ import { Loader2 } from 'lucide-react';
 import RabitaLogo from '../icons/RabitaLogo';
 import { useMessaging } from '@/hooks/useMessaging';
 import { env } from '@/config/env';
+import TagSelector from './components/TagSelector';
 
 const RABITA_REGISTRY_ADDRESS = env.RABITA_REGISTRY_ADDRESS as Address;
 
@@ -35,6 +36,8 @@ type RegistrationStatus = 'idle' | 'signing' | 'pending' | 'success' | 'error';
 interface RegistrationFormData {
   profilePictureIpfsHash: string;
   fee: string;
+  tags: string;
+  description: string;
 }
 
 export default function KOLRegistrationView() {
@@ -65,6 +68,8 @@ export default function KOLRegistrationView() {
   const [formData, setFormData] = useState<RegistrationFormData>({
     profilePictureIpfsHash: '',
     fee: '0.01',
+    tags: '',
+    description: '',
   });
 
   const { writeContractAsync } = useWriteContract();
@@ -319,6 +324,8 @@ export default function KOLRegistrationView() {
             effectiveName,
             parseEther(formData.fee || '0.01'),
             profileIpfsHash,
+            formData.tags,
+            formData.description,
             salt as `0x${string}`,
             nonce as `0x${string}`,
             BigInt(timestamp),
@@ -469,6 +476,14 @@ export default function KOLRegistrationView() {
       }
     }
   }, [generateSignature, isGeneratingSignature]);
+
+  const handleTagsChange = useCallback((tags: string) => {
+    setFormData(prev => ({ ...prev, tags }));
+  }, []);
+
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, description: e.target.value }));
+  }, []);
 
   if (registrationStatus === 'success') {
     return (
@@ -681,6 +696,33 @@ export default function KOLRegistrationView() {
                       onIpfsHashChange={handleIpfsHashChange}
                       socialImageUrl={effectiveProfileImageUrl}
                     />
+                    
+                    <div className="p-5 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
+                      <h3 className="text-base font-medium text-gray-800 mb-4">Profile Details</h3>
+                      
+                      <TagSelector onTagsChange={handleTagsChange} maxTags={5} />
+                      
+                      <div className="mt-6 space-y-1.5">
+                        <label htmlFor="description" className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                          <FiFileText size={14} className="text-primary" />
+                          Short bio
+                        </label>
+                        <textarea
+                          id="description"
+                          rows={3}
+                          placeholder="Briefly describe your expertise and what users can expect when connecting with you (max 280 characters)"
+                          maxLength={280}
+                          value={formData.description}
+                          onChange={handleDescriptionChange}
+                          className="w-full px-3 py-2 text-xs bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200 resize-none"
+                        />
+                        <div className="flex justify-end">
+                          <span className="text-xs text-gray-500">
+                            {formData.description.length}/280
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-2">
                       <button

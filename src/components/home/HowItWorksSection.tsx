@@ -53,7 +53,7 @@ export const HowItWorksSection = () => {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold mb-4 text-white">how it works</h2>
+          <h2 className="text-4xl font-bold mb-4 text-white">how <span className="text-primary">it </span>works</h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             simple, secure, and efficient process for connecting with kols
           </p>

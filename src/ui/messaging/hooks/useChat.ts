@@ -43,13 +43,13 @@ export function useChat(): UseChatReturn {
     const [replyToMessageId, setReplyToMessageId] = useState<number | null>(null);
 
     useEffect(() => {
-        if (fetchedMessages && !isFetchingMessages && !error) {
+        if (fetchedMessages && !isFetchingMessages && selectedContact) {
             setChatMessages(prev => ({
                 ...prev,
-                [selectedContact?.wallet || '']: fetchedMessages
+                [selectedContact.wallet || '']: fetchedMessages
             }));
         }
-    }, [fetchedMessages, selectedContact, setChatMessages, isFetchingMessages, error]);
+    }, [fetchedMessages, selectedContact, setChatMessages, isFetchingMessages]);
 
     const handleContactClick = useCallback((contact: KOLProfile): void => {
         setSelectedContact(contact);
@@ -88,6 +88,8 @@ export function useChat(): UseChatReturn {
             const currentMessages = prev[selectedContact.wallet] || [];
             const lastMessage = currentMessages[currentMessages.length - 1];
             const replyToMessageId = lastMessage?.id ?? -1;
+
+            console.debug('replyToMessageId', replyToMessageId, lastMessage, currentMessages);
 
             const newMessage = {
                 ...message,
@@ -259,7 +261,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         
         try {
             let isResponding = message.id > 0 && message.kolProfile?.pgpKey?.publicKey === "0x";
-
+            console.debug('isResponding', isResponding, message.id, message.kolProfile?.pgpKey?.publicKey);
             let userPGPNonce = '1'
 
             // console.debug('handleContractCall', isResponding, message.id, ipfsHash, message.senderId, message.receiverId, pgpPublicKey, pgpNonce);
@@ -267,9 +269,9 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
             const tx = await writeContractAsync({
                 address: RABITA_MESSAGING_ADDRESS,
                 abi: RABITA_MESSAGING_ABI,
-                functionName: isResponding ? 'respondToEncryptedMessage' : 'sendEncryptedMessage',
+                functionName: isResponding ? 'respondToMessage' : 'sendEncryptedMessage',
                 args: isResponding ? [
-                    message.id,
+                    message.receiverId,
                     ipfsHash
                 ] :[
                     message.kolProfile.wallet,
@@ -332,56 +334,201 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }), [chatStatus, isMessageSent, isTxnLoading, status, error, isIPFSUploaded, isLoading, isInTransaction, retrySendMessage]);
 };
 
+interface ConversationGraphQLResponse {
+    userAsSender: {
+        id: string;
+        lastMessageContent: string;
+        lastMessageSender: string;
+        lastMessageTimestamp: number;
+        messageCount: number;
+        isActive: boolean;
+        messages: MessageData[];
+    }[];
+    userAsKol: {
+        id: string;
+        lastMessageContent: string;
+        lastMessageSender: string;
+        lastMessageTimestamp: number;
+        messageCount: number;
+        isActive: boolean;
+        messages: MessageData[];
+    }[];
+}
+
+interface MessageData {
+    id: string;
+    messageCount: string;
+    messageId: string;
+    sender: string;
+    kol: string;
+    messageIpfsHash: string;
+    blockTimestamp: number;
+    fee: string;
+    deadline: number;
+    senderPGPKey?: {
+        pgpPublicKey: string;
+        pgpNonce: string;
+    };
+    kolProfile?: {
+        id: string;
+        handle: string;
+        platform: string;
+        name: string;
+        fee: string;
+        pgpKey?: {
+            publicKey: string;
+            pgpNonce: string;
+            isActive: boolean;
+        };
+    };
+    message: {
+        status: string;
+        createdAt: number;
+        updatedAt: number;
+        responses?: {
+            responseIpfsHash: string;
+            responseTimestamp: number;
+        }[];
+    };
+}
+
 export const useConversation = (contact: KOLProfile | null) => {
     const { address } = useActiveWallet();
     const [parsedMessages, setParsedMessages] = useState<Message[]>([]);
-    const { data: messages, isLoading: isFetchingMessages, error } = useGraphQuery<GraphQLResponse>(
+    
+    const { data, isLoading: isFetchingMessages, error } = useGraphQuery<ConversationGraphQLResponse>(
         ['userAddress', address || '', 'otherParty', contact?.wallet || ''],
         RABITA_CONVERSATION_QUERY,
         {
             variables: { userAddress: address || '', otherParty: contact?.wallet || '' },
             enabled: !!address && !!contact,
-            staleTime: 10 * 1000,
-            refetchInterval: 10 * 1000,
+            staleTime: 60 * 1000,
+            refetchInterval: 2 * 60 * 1000,
             refetchOnMount: true,
             refetchOnWindowFocus: true
         }
     );
 
     useEffect(() => {
-        if (messages) {
-            const parsedMessages: Message[] = messages.conversation.map((message: any) => ({
-                id: parseInt(message.messageId),
-                senderId: message.sender,
-                receiverId: message.kol,
-                text: message.messageIpfsHash,
-                timestamp: new Date(message.blockTimestamp * 1000),
-                kolProfile: message.kolProfile as unknown as KOLProfile,
-                isTransactionProcessed: true,
-                delivered: true
-            }));
-            const respondedMessages = messages.conversation.filter((message: any) => message.message.status === "RESPONDED").map((message: any) => ({
-                id: parseInt(message.messageId)+9999,
-                senderId: message.kol,
-                receiverId: message.sender,
-                text: message.message.responses[0].responseIpfsHash,
-                timestamp: new Date(message.message.responses[0].responseTimestamp * 1000),
-                kolProfile: message.kolProfile as unknown as KOLProfile,
-                isTransactionProcessed: true,
-                delivered: true
-            }));
-
-            console.debug("respondedMessages",respondedMessages)
-
-            let allMessages = [...parsedMessages, ...respondedMessages];
+        if (!data) return;
+        
+        try {
+            const allMessages: Message[] = [];
+            
+            // Process messages from userAsSender (user sent to contact)
+            if (data.userAsSender?.length > 0 && data.userAsSender[0]?.messages?.length) {
+                console.debug('userAsSender', data.userAsSender[0].messages);
+                const userSentMessages = data.userAsSender[0].messages.map(message => ({
+                    id: Math.floor(Math.random() * 1000000),
+                    senderId: message.sender,
+                    receiverId: message.kol,
+                    text: message.messageIpfsHash,
+                    timestamp: new Date(message.blockTimestamp * 1000),
+                    kolProfile: createKolProfileFromData(message.kolProfile),
+                    isTransactionProcessed: true,
+                    delivered: true
+                }));
+                
+                // Add responses to user's messages if they exist
+                const responses = data.userAsSender[0].messages
+                    .filter(message => message.message?.status === "RESPONDED")
+                    .map(message => {
+                        if (!message.message.responses?.[0]) return null;
+                        
+                        const response = message.message.responses[0];
+                        return {
+                            id: Math.floor(Math.random() * 1000000), // Use a different ID scheme for responses
+                            senderId: message.kol,
+                            receiverId: message.sender,
+                            text: response.responseIpfsHash,
+                            timestamp: new Date(response.responseTimestamp * 1000),
+                            kolProfile: createKolProfileFromData(message.kolProfile),
+                            isTransactionProcessed: true,
+                            delivered: true
+                        };
+                    })
+                    .filter(Boolean) as Message[];
+                
+                allMessages.push(...userSentMessages, ...responses);
+            }
+            
+            // Process messages from userAsKol (contact sent to user)
+            if (data.userAsKol?.length > 0 && data.userAsKol[0]?.messages?.length) {
+                const messagesReceivedByUser = data.userAsKol[0].messages.map(message => ({
+                    id: Math.floor(Math.random() * 1000000),
+                    senderId: message.sender,
+                    receiverId: message.kol,
+                    text: message.messageIpfsHash,
+                    timestamp: new Date(message.blockTimestamp * 1000),
+                    kolProfile: createKolProfileFromData(message.kolProfile),
+                    isTransactionProcessed: true,
+                    delivered: true
+                }));
+                
+                // Add responses to these messages if they exist
+                const responses = data.userAsKol[0].messages
+                    .filter(message => message.message?.status === "RESPONDED")
+                    .map(message => {
+                        if (!message.message.responses?.[0]) return null;
+                        
+                        const response = message.message.responses[0];
+                        return {
+                            id: Math.floor(Math.random() * 1000000),
+                            senderId: message.kol,
+                            receiverId: message.sender,
+                            text: response.responseIpfsHash,
+                            timestamp: new Date(response.responseTimestamp * 1000),
+                            kolProfile: createKolProfileFromData(message.kolProfile),
+                            isTransactionProcessed: true,
+                            delivered: true
+                        };
+                    })
+                    .filter(Boolean) as Message[];
+                
+                allMessages.push(...messagesReceivedByUser, ...responses);
+            }
+            
+            // Sort all messages by timestamp
             allMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+            
+            console.debug("Processed conversation messages:", allMessages.length);
             setParsedMessages(allMessages);
-            // for (const message of messages.conversation) {
-            //     console.debug('message', message);
-            //     console.debug(message.messageId, message.sender, message.kol, message.messageIpfsHash, message.blockTimestamp, message.kolProfile, message.kolProfile?.id)
-            // }
+        } catch (error) {
+            console.error("Error processing conversation messages:", error);
+            setParsedMessages([]);
         }
-    }, [messages]);
+    }, [data, contact]);
+
+    // Helper function to create KOLProfile from GraphQL data
+    function createKolProfileFromData(profileData?: MessageData['kolProfile']): KOLProfile {
+        if (!profileData) {
+            return {
+                wallet: (contact?.wallet || '') as `0x${string}`,
+                handle: contact?.handle || '',
+                platform: contact?.platform || '',
+                name: contact?.name || '',
+                fee: BigInt(contact?.fee || 0),
+                profileIpfsHash: null,
+                verified: false,
+                exists: true
+            };
+        }
+        
+        return {
+            wallet: profileData.id as `0x${string}`,
+            handle: profileData.handle,
+            platform: profileData.platform,
+            name: profileData.name,
+            fee: BigInt(profileData.fee || 0),
+            profileIpfsHash: null,
+            verified: false,
+            exists: true,
+            pgpKey: profileData.pgpKey ? {
+                publicKey: profileData.pgpKey.publicKey,
+                pgpNonce: profileData.pgpKey.pgpNonce
+            } : undefined
+        };
+    }
 
     return { messages: parsedMessages, isFetchingMessages, error };
-}
+};

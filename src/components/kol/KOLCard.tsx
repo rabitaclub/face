@@ -181,7 +181,8 @@ export type EnhancedKOLProfile = KOLProfile & {
     earnings: string, 
     growth: number 
   },
-  activity: number[]
+  activity: number[],
+  tags?: string
 };
 
 // Shimmer effect component
@@ -190,7 +191,7 @@ const Shimmer = ({ className = "" }: { className?: string }) => (
 );
 
 // Shimmer loading placeholder for KOL Card
-const ShimmerKOLCard = () => {
+export const ShimmerKOLCard = () => {
   return (
     <Card className="overflow-hidden bg-white/90 border-primary/20 h-full relative">
       <div className="absolute top-0 right-0">
@@ -339,7 +340,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
   const [avgResponseHours] = useState(3 + (Math.floor(Math.random() * 40))); // Random between 3-43 hours for demo
   
   // Mock expertise tags
-  const [expertiseTags] = useState(['DeFi', 'NFTs', 'Trading', 'Technical Analysis'].slice(0, 2 + Math.floor(Math.random() * 3))); // Random 2-4 tags
+  const expertiseTags = kol.tags ? kol.tags.split(',').slice(0, 3) : [];
   
   // Calculate response time percentage (assuming 72hrs is maximum for visualization)
   useEffect(() => {

@@ -201,9 +201,9 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                             <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
                                 <MessageSquare size={32} className="text-primary" />
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-800">Initialize Messaging</h2>
+                            <h2 className="text-xl font-semibold text-gray-800">initialize messaging</h2>
                             <p className="text-sm text-gray-500">
-                                Generate your encryption keys to start secure messaging with KOLs
+                                generate your encryption keys to start secure messaging
                             </p>
                             <Button 
                                 onClick={generateKeys}
@@ -213,7 +213,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                                 {isMessagingLoading ? 'Generating Keys...' : 'Generate Keys'}
                             </Button>
                             <p className="text-xs text-gray-400 mt-2">
-                                Your messages will be end-to-end encrypted
+                                your messages will be end-to-end encrypted
                             </p>
                         </div>
                     </div>

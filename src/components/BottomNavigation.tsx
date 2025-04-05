@@ -10,6 +10,7 @@ export default function BottomNavigation() {
   const pathname = usePathname();
   const navRef = useRef<HTMLDivElement>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [shouldHideNav, setShouldHideNav] = useState(false);
 
   useEffect(() => {
     // Check if visualViewport API is available (modern browsers)
@@ -24,20 +25,43 @@ export default function BottomNavigation() {
         const isKeyboardVisible = viewportHeight < windowHeight * 0.8;
         setKeyboardVisible(isKeyboardVisible);
         
-        // We no longer manipulate the position directly
-        // Just set the state and let CSS handle the visibility
+        // Check if screen height is too small (less than 500px) or keyboard is visible
+        const isHeightLimited = viewportHeight < 500;
+        setShouldHideNav(isKeyboardVisible || isHeightLimited);
       };
 
-      // Initial positioning
+      // Initial check
       viewportHandler();
 
-      // Listen for viewport changes (keyboard appears/disappears)
+      // Check on resize and orientation change
       visualViewport.addEventListener('resize', viewportHandler);
       visualViewport.addEventListener('scroll', viewportHandler);
+      window.addEventListener('resize', viewportHandler);
+      window.addEventListener('orientationchange', viewportHandler);
 
       return () => {
         visualViewport.removeEventListener('resize', viewportHandler);
         visualViewport.removeEventListener('scroll', viewportHandler);
+        window.removeEventListener('resize', viewportHandler);
+        window.removeEventListener('orientationchange', viewportHandler);
+      };
+    } else {
+      // Fallback for browsers without visualViewport API
+      const resizeHandler = () => {
+        const windowHeight = window.innerHeight;
+        // Hide navigation on small screens
+        setShouldHideNav(windowHeight < 500);
+      };
+      
+      // Initial check
+      resizeHandler();
+      
+      window.addEventListener('resize', resizeHandler);
+      window.addEventListener('orientationchange', resizeHandler);
+      
+      return () => {
+        window.removeEventListener('resize', resizeHandler);
+        window.removeEventListener('orientationchange', resizeHandler);
       };
     }
   }, []);
@@ -45,7 +69,7 @@ export default function BottomNavigation() {
   return (
     <div 
       ref={navRef}
-      className={`lg:hidden fixed left-0 right-0 z-30 bg-[var(--foreground)] text-[var(--background)] border-t border-[var(--background)]/20 transition-all duration-300 ${keyboardVisible ? 'translate-y-full' : ''}`}
+      className={`lg:hidden fixed left-0 right-0 z-30 bg-[var(--foreground)] text-[var(--background)] border-t border-[var(--background)]/20 transition-all duration-300 ${shouldHideNav ? 'translate-y-full' : ''}`}
       style={{
         bottom: 0,
         height: "var(--bottom-nav-height)",

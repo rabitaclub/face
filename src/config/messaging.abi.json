@@ -116,6 +116,44 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "kol",
+                "type": "address"
+            }
+        ],
+        "name": "ActivePairAdded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "kol",
+                "type": "address"
+            }
+        ],
+        "name": "ActivePairRemoved",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
@@ -136,14 +174,14 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "uint256",
-                "name": "messageId",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
             },
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "kol",
+                "name": "receiver",
                 "type": "address"
             },
             {
@@ -153,7 +191,7 @@
                 "type": "string"
             }
         ],
-        "name": "MessageResponded",
+        "name": "MessageSent",
         "type": "event"
     },
     {
@@ -164,18 +202,6 @@
                 "internalType": "uint256",
                 "name": "messageId",
                 "type": "uint256"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "sender",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "kol",
-                "type": "address"
             },
             {
                 "indexed": false,
@@ -196,7 +222,7 @@
                 "type": "string"
             }
         ],
-        "name": "MessageSent",
+        "name": "MessageSentToKOL",
         "type": "event"
     },
     {
@@ -241,6 +267,12 @@
                 "type": "address"
             },
             {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "messageId",
+                "type": "uint256"
+            },
+            {
                 "indexed": false,
                 "internalType": "bytes",
                 "name": "pgpPublicKey",
@@ -255,6 +287,19 @@
         ],
         "name": "SenderPGPUpdated",
         "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "MAX_BATCH_SIZE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [],
@@ -290,6 +335,81 @@
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "activeKols",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "activePairCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "activePairIndex",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "activeSenders",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
             }
         ],
         "stateMutability": "view",
@@ -354,12 +474,73 @@
     },
     {
         "inputs": [],
+        "name": "getActivePairCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "isActivePair",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "kolRegistry",
         "outputs": [
             {
                 "internalType": "contract IKOLRegistry",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "kolToUserLastReply",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -490,44 +671,6 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "pendingMessageIds",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "pendingMessageIndex",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
                 "internalType": "bytes",
                 "name": "performData",
                 "type": "bytes"
@@ -548,9 +691,9 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "_messageId",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "_user",
+                "type": "address"
             },
             {
                 "internalType": "string",
@@ -558,7 +701,7 @@
                 "type": "string"
             }
         ],
-        "name": "respondToEncryptedMessage",
+        "name": "respondToMessage",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -607,14 +750,67 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "_messageId",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "kol",
+                "type": "address"
             }
         ],
         "name": "triggerTimeout",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "userToKolFeesCollected",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "userToKolLatestMessage",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

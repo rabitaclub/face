@@ -21,6 +21,8 @@ export interface KOLProfile {
     publicKey: string;
     pgpNonce: string;
   };
+  tags?: string;
+  description?: string;
 }
 
 /**
