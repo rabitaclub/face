@@ -17,7 +17,7 @@ const requestSchema = z.object({
 
 // Track recent requests for basic rate limiting
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 60; // 60 requests per minute
+const MAX_REQUESTS_PER_WINDOW = 3600; // 360 requests per minute
 
 interface RateLimitEntry {
   count: number;

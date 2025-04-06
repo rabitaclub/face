@@ -48,7 +48,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </span>
             {message.senderId.toLowerCase() === address?.toLowerCase() && !isMessageSent && !message.isTransactionProcessed && (
                 <div className={`flex items-center mt-1 px-1`}>
-                    {isTxnLoading || !error && (
+                    {(isTxnLoading && !error) && (
                         <div className="w-3 h-3 mr-2 rounded-full border-2 border-gray-300 border-t-primary animate-spin"></div>
                     )}
                     <span className="text-[10px] text-gray-500 flex items-center gap-1">
