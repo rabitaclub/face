@@ -349,13 +349,17 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
 
     useEffect(() => {
         if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered && !isLoadingPGPKeys && !isErrorInCall) {
-            handleIPFSUpload();
+            setTimeout(() => {
+                handleIPFSUpload();
+            }, 2000);
         }
     }, [handleIPFSUpload, isIPFSUploaded, message, isLoadingPGPKeys, isErrorInCall]);
 
     useEffect(() => {
         if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered && !isErrorInCall) {
-            handleContractCall();
+            setTimeout(() => {
+                handleContractCall();
+            }, 2000);
         }
     }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message, isErrorInCall]);
 
@@ -428,7 +432,7 @@ export const useConversation = (contact: KOLProfile | null) => {
             variables: { userAddress: address || '', otherParty: contact?.wallet || '' },
             enabled: !!address && !!contact,
             staleTime: 60 * 1000,
-            refetchInterval: 2 * 60 * 1000,
+            refetchInterval: 60 * 1000,
             refetchOnMount: true,
             refetchOnWindowFocus: true
         }

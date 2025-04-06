@@ -169,7 +169,7 @@ export function useTrendingKOLs({
   limit = 20,
   period = '7d',
   enabled = true,
-  refetchInterval = 5 * 60 * 1000, // 5 minutes by default
+  refetchInterval = 60 * 1000, // 1 minute by default
 }: UseTrendingKOLsOptions = {}) {
   const [processedKOLs, setProcessedKOLs] = useState<TrendingKOLProfile[]>([]);
   
@@ -192,8 +192,6 @@ export function useTrendingKOLs({
       },
       staleTime: 60 * 1000, // 1 minute
       refetchInterval,
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
       enabled
     }
   );

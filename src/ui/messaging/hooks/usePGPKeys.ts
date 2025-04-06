@@ -18,8 +18,8 @@ export const usePGPKeys = (address: string) => {
         PGP_KEYS_QUERY,
         {
             variables: { address },
-            refetchInterval: 1000 * 2,
-            staleTime: 1000,
+            refetchInterval: 1000 * 10,
+            staleTime: 1000 * 10,
             refetchOnMount: true,
             retry(failureCount, error) {
                 console.debug('retry', failureCount, error);

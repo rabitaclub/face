@@ -30,7 +30,7 @@ export default function KolSearchBar({
         {
             variables: { searchTerm: debouncedQuery },
             skip: debouncedQuery.length < 2,
-            staleTime: 5 * 60 * 1000,
+            staleTime: 60 * 1000,
         }
     );
 

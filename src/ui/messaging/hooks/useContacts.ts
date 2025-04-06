@@ -217,7 +217,7 @@ export const useContactList = () => {
         {
             variables: { userAddress: address || '' },
             staleTime: 60 * 1000,
-            refetchInterval: 2 * 60 * 1000,
+            refetchInterval: 60 * 1000,
             refetchOnMount: true,
             refetchOnWindowFocus: true
         }
