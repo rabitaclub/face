@@ -274,6 +274,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, [message, userPGPKey, receiverPGPKey, kolPGPNonce]);
 
     const handleContractCall = useCallback(async () => {
+        console.debug('handleContractCall', isIPFSUploaded, message.id, message.kolProfile?.pgpKey?.publicKey);
         if (!isIPFSUploaded) return;
 
         setChatStatus("Sending message...");
@@ -357,9 +358,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
 
     useEffect(() => {
         if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered && !isErrorInCall) {
-            setTimeout(() => {
-                handleContractCall();
-            }, 2000);
+            handleContractCall();
         }
     }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message, isErrorInCall]);
 
