@@ -93,104 +93,31 @@ export const KOL_MESSAGES_QUERY = gql`
 
 export const RABITA_CONVERSATION_QUERY = gql`
   query GetDetailedConversation($userAddress: Bytes!, $otherParty: Bytes!, $first: Int = 20, $skip: Int = 0) {
-    userAsSender: conversations(
-      where: { 
-        sender: $userAddress 
-        kol: $otherParty 
-      }
+    messagePayloads(
+      where: { or: [{ sender: $userAddress, receiver: $otherParty }, { sender: $otherParty, receiver: $userAddress }] }
+      orderBy: blockTimestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
     ) {
       id
-      lastMessageContent
-      lastMessageSender
-      lastMessageTimestamp
-      messageCount
-      isActive
-      messages(
-        orderBy: blockTimestamp
-        orderDirection: desc
-        first: $first
-        skip: $skip
-      ) {
+      sender
+      receiver
+      content
+      kolProfile {
         id
-        messageId
-        sender
-        kol
-        messageIpfsHash
-        blockTimestamp
+        name
+        handle
+        platform
         fee
-        deadline
-        senderPGPKey {
-          pgpPublicKey
+        wallet
+        pgpKey {
+          id
+          publicKey
           pgpNonce
         }
-        kolProfile {
-          id
-          handle
-          platform
-          name
-          fee
-          pgpKey {
-            publicKey
-            pgpNonce
-            isActive
-          }
-        }
-        message {
-          status
-          createdAt
-          updatedAt
-        }
       }
-    }
-    
-    userAsKol: conversations(
-      where: { 
-        sender: $otherParty
-        kol: $userAddress 
-      }
-    ) {
-      id
-      lastMessageContent
-      lastMessageSender
-      lastMessageTimestamp
-      messageCount
-      isActive
-      messages(
-        orderBy: blockTimestamp
-        orderDirection: desc
-        first: $first
-        skip: $skip
-      ) {
-        id
-        messageId
-        sender
-        kol
-        messageIpfsHash
-        blockTimestamp
-        fee
-        deadline
-        senderPGPKey {
-          pgpPublicKey
-          pgpNonce
-        }
-        kolProfile {
-          id
-          handle
-          platform
-          name
-          fee
-          pgpKey {
-            publicKey
-            pgpNonce
-            isActive
-          }
-        }
-        message {
-          status
-          createdAt
-          updatedAt
-        }
-      }
+      blockTimestamp
     }
   }
 `;

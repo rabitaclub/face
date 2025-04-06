@@ -26,10 +26,11 @@ export const encryptMessage = async (
   message: string,
   publicKey: string
 ): Promise<string> => {
-  console.debug('Encrypting message...');
-  
+  console.debug('Encrypting message...', publicKey, message);
+  console.debug(EthCrypto.encryptWithPublicKey("e5c4dc6f0bf0e7f0dd808974a708cdad67d032da041139c4cd9f7d5db9013fdecaae3c7a5258968558d656f2d36d09d5809dc86f099c0a03087d20dbebf95180", message))
+
   try {
-    const encryptedMessage = await EthCrypto.encryptWithPublicKey(publicKey.slice(2, publicKey.length), message);
+    const encryptedMessage = await EthCrypto.encryptWithPublicKey(publicKey, message);
     console.debug(encryptedMessage)
 
     return JSON.stringify(encryptedMessage, null, 2);
@@ -48,7 +49,6 @@ export const decryptMessage = async (
   try {
     const encryptedDataParsed = JSON.parse(encryptedData);
     const decryptedMessage = await EthCrypto.decryptWithPrivateKey(privateKey, encryptedDataParsed);
-    // console.debug(decryptedMessage)
     return decryptedMessage;
   } catch (error) {
     console.error('Error in decryptMessage:', error);
@@ -60,6 +60,9 @@ export const generateAsymmetricKeys = async (signature: string): Promise<Encrypt
   try {
     const privateKey = keccak256(signature as `0x${string}`);
     const account = privateKeyToAccount(privateKey);
+
+    const identity = EthCrypto.createIdentity();
+    console.debug(identity)
     
     return {
       publicKey: account.publicKey,
