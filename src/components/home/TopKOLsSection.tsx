@@ -7,12 +7,14 @@ import { useIsMobile } from '@/hooks/useIsClient';
 import { FiLoader } from 'react-icons/fi';
 import { FileScanIcon, ScanSearchIcon } from 'lucide-react';
 import { useTrendingKOLs, TrendingKOLProfile } from '@/hooks/useTrendingKOLs';
+import { useRouter } from 'next/navigation';
 
 // Sample data for demonstration
 interface KOLMetrics {
-  messages: number;
-  earnings: string;
-  growth: number;
+  activeConversations: number;
+  totalFees: string;
+  messageCount: number;
+  dailyActivity: Record<string, number>;
 }
 
 interface EnhancedKOL extends KOLProfile {
@@ -37,9 +39,10 @@ const mockTopKOLs: EnhancedKOL[] = [
     exists: true,
     formattedFee: '0.1',
     metrics: {
-      messages: 1420,
-      earnings: '35.6',
-      growth: 24
+      activeConversations: 1420,
+      totalFees: '35.6',
+      messageCount: 24,
+      dailyActivity: {}
     },
     activity: [3, 0, 1, 2, 3, 0, 5],
     kolData: {
@@ -59,9 +62,10 @@ const mockTopKOLs: EnhancedKOL[] = [
     exists: true,
     formattedFee: '0.2',
     metrics: {
-      messages: 934,
-      earnings: '28.2',
-      growth: 18
+      activeConversations: 934,
+      totalFees: '28.2',
+      messageCount: 18,
+      dailyActivity: {}
     },
     activity: [2, 0, 0, 0, 0, 0, 1],
     kolData: {
@@ -81,9 +85,10 @@ const mockTopKOLs: EnhancedKOL[] = [
     exists: true,
     formattedFee: '0.15',
     metrics: {
-      messages: 1105,
-      earnings: '22.7',
-      growth: 30
+      activeConversations: 1105,
+      totalFees: '22.7',
+      messageCount: 30,
+      dailyActivity: {}
     },
     activity: [2, 4, 12, 1, 1, 0, 2],
     kolData: {
@@ -99,8 +104,7 @@ export const TopKOLsSection = () => {
   const [mounted, setMounted] = useState(false);
 
   const { trendingKOLs, isLoading } = useTrendingKOLs();
-
-  console.debug('trendingKOLs', trendingKOLs);
+  const router = useRouter();
   
   // Use effect to set mounted state after component is mounted
   useEffect(() => {
@@ -141,9 +145,10 @@ export const TopKOLsSection = () => {
       ...kol,
       formattedFee: formatEther(kol.fee),
       metrics: {
-        messages: kol.metrics.messageCount || 0,
-        earnings: (kol.metrics.totalFees / BigInt(10**18)).toString() || '0',
-        growth: 0 // Growth rate calculation would need historical data
+        activeConversations: kol.metrics.activeConversations || 0,
+        totalFees: kol.metrics.totalFees || '0',
+        messageCount: kol.metrics.messageCount || 0,
+        dailyActivity: kol.metrics.dailyActivity || {}
       },
       activity: Object.values(kol.metrics.dailyActivity || {}).slice(-7),
       kolData: kol.kolData
@@ -298,7 +303,9 @@ export const TopKOLsSection = () => {
           className="text-center"
         >
           <button 
-            onClick={() => {}}
+            onClick={() => {
+              router.push('/messages');
+            }}
             className="bg-dark hover:bg-dark/90 text-primary px-5 sm:px-6 py-1.5 sm:py-2 rounded-button font-medium transition-all duration-normal border border-primary/20 shadow-elevation text-sm sm:text-base"
           >
             view/search kols

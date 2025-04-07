@@ -177,9 +177,10 @@ const calculateTrend = (data: number[]): { percentage: number, direction: 'up' |
 // Enhanced KOL profile type with metrics and activity data
 export type EnhancedKOLProfile = KOLProfile & { 
   metrics: { 
-    messages: number, 
-    earnings: string, 
-    growth: number 
+    activeConversations: number, 
+    totalFees: string, 
+    messageCount: number,
+    dailyActivity: Record<string, number>
   },
   activity: number[],
   kolData: {
@@ -518,7 +519,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
               <div className="flex items-center text-gray-800 mb-0.5 sm:mb-1">
                 <FiMessageCircle size={12} />
               </div>
-              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.metrics.messages}</span>
+              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.metrics.activeConversations}</span>
               <span className="text-[10px] sm:text-xs text-gray-600">messages</span>
             </motion.div>
             
@@ -532,7 +533,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
               <div className="flex items-center text-gray-800 mb-0.5 sm:mb-1">
                 <FiDollarSign size={12} />
               </div>
-              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.metrics.earnings}</span>
+              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.metrics.totalFees}</span>
               <span className="text-[10px] sm:text-xs text-gray-600">BNB earned</span>
             </motion.div>
             

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useGraphQuery } from './useGraphQuery';
 import { TRENDING_KOLS_QUERY } from '@/config/graph.queries';
 import { KOLProfile } from '@/types/profile';
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
 /**
  * Interface for message data in trending KOL response
@@ -55,7 +55,7 @@ interface TrendingKOLData {
     description: string;
     profileHash: string;
   };
-  recentMessages: MessageData[];
+  messages: MessageData[];
   activePairsAsKOL: ActivePair[];
 }
 
@@ -85,7 +85,7 @@ export interface TrendingKOLProfile extends KOLProfile {
   };
   metrics: {
     messageCount: number;
-    totalFees: bigint;
+    totalFees: string;
     activeConversations: number;
     dailyActivity: Record<string, number>; // Date string -> message count
     avgResponseTime?: number; // Average response time in seconds
@@ -203,8 +203,8 @@ export function useTrendingKOLs({
     try {
       const processed = data.kolregistereds.map(kol => {
         console.debug('kol', kol);
-        const messageCount = kol.recentMessages?.length || 0;
-        const totalFees = (kol.recentMessages || []).reduce(
+        const messageCount = kol.messages?.length || 0;
+        const totalFees = (kol.messages || []).reduce(
           (sum, msg) => sum + BigInt(msg.fee || "0"), 
           BigInt(0)
         );
@@ -226,18 +226,18 @@ export function useTrendingKOLs({
           dailyActivity[key] = 0;
         }
         
-        (kol.recentMessages || []).forEach(msg => {
+        (kol.messages || []).forEach(msg => {
           const dateKey = formatDateKey(msg.blockTimestamp);
           dailyActivity[dateKey] = (dailyActivity[dateKey] || 0) + 1;
         });
         
         // Calculate average response time
         let avgResponseTime: number | undefined;
-        if (kol.recentMessages && kol.recentMessages.length > 0) {
+        if (kol.messages && kol.messages.length > 0) {
           // Collect all response times from conversations
           const responseTimes: number[] = [];
           
-          kol.recentMessages.forEach(msg => {
+          kol.messages.forEach(msg => {
             if (msg.conversation && msg.conversation.messages && msg.conversation.messages.length >= 2) {
               const convResponseTime = calculateAvgResponseTime(msg.conversation.messages);
               if (convResponseTime) responseTimes.push(convResponseTime);
@@ -265,7 +265,7 @@ export function useTrendingKOLs({
           kolData: kol.kolData,
           metrics: {
             messageCount,
-            totalFees,
+            totalFees: formatEther(totalFees),
             activeConversations,
             dailyActivity,
             avgResponseTime
