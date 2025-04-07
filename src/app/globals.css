@@ -514,3 +514,22 @@ body {
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
+
+@keyframes bounce-short {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(-1px);
+  }
+}
+
+.animate-bounce-short {
+  animation: bounce-short 0.8s ease-in-out;
+}

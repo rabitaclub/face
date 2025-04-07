@@ -4,6 +4,7 @@ export interface NavItem {
     icon: React.ReactNode;
     label: string;
     href: string;
+    badgeKey?: string;
 }
 
 export const NavItems: NavItem[] = [
@@ -16,6 +17,7 @@ export const NavItems: NavItem[] = [
     icon: <MessageSquare size={18} />,
     label: "Messages",
     href: "/messages",
+    badgeKey: "messages",
   },
   {
     icon: <User size={18} />,

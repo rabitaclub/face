@@ -190,4 +190,25 @@ query GetTrendingKOLs($timestampDaysAgo: Int!, $limit: Int = 20) {
     }
   }
 }
-`
+`;
+
+export const UNREPLIED_MESSAGES_QUERY = gql`
+  query GetUnrepliedMessages($userAddress: Bytes!) {
+    conversations(
+      where: {
+        or: [
+          {
+            sender: $userAddress
+            isActive: true
+          },
+          {
+            kol: $userAddress
+            isActive: true
+          }
+        ]
+      }
+    ) {
+      id
+    }
+  }
+`;

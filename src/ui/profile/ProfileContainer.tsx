@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import CustomConnect from '@/components/CustomConnect';
 import KOLRegistrationView from './KOLRegistrationView';
 import KOLProfileView from '@/ui/profile/KOLProfileView';
-import { formatEther } from 'viem';
 import { useTrendingKOLByAddress } from '@/hooks/useTrendingKOLs';
 
 export default function ProfileContainer() {
@@ -30,7 +29,7 @@ export default function ProfileContainer() {
     if (hasProfileData && address && trendingKOL) {
       setMetrics({
         totalMessages: trendingKOL.metrics.messageCount,
-        totalPayments: formatEther(trendingKOL.metrics.totalFees),
+        totalPayments: trendingKOL.metrics.totalFees,
         totalFollowers: trendingKOL.metrics.activeConversations
       });
     }

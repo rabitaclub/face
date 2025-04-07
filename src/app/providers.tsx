@@ -15,6 +15,7 @@ import {
 // Add NextAuth Session Provider
 import { SessionProvider } from "next-auth/react";
 import { MessagingProvider } from '@/contexts/MessagingContext';
+import { NavigationProvider } from '@/contexts/NavigationContext';
 
 const config = getDefaultConfig({
     appName: 'Rabita Club',
@@ -32,7 +33,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 <QueryClientProvider client={queryClient}>
                     <RainbowKitProvider>
                         <MessagingProvider>
-                            {children}
+                            <NavigationProvider>
+                                {children}
+                            </NavigationProvider>
                         </MessagingProvider>
                     </RainbowKitProvider>
                 </QueryClientProvider>

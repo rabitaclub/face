@@ -9,6 +9,10 @@ import { decryptMessage } from '@/utils/encryption';
 import { Loader2, User } from 'lucide-react';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
 import { Address } from 'viem';
+import { format } from 'date-fns';
+import { useIsClient } from '@/hooks/useIsClient';
+import { CountBadge } from '@/components/ui/CountBadge';
+
 interface ContactItemProps {
     contact: Address;
     active?: boolean;
@@ -24,6 +28,14 @@ export const ContactItem: React.FC<ContactItemProps> = ({
 }) => {
     const { profile: {profileIpfsHash, name, handle, wallet} } = useKOLProfileData(contact);
     const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(lastMessage);
+    const isClient = useIsClient();
+    const { address } = useActiveWallet();
+    const [formattedTimestamp, setFormattedTimestamp] = useState<string>('');
+
+    const needsReply = lastMessage && 
+                       address && 
+                       lastMessage.senderId !== address &&
+                       lastMessage.kolProfile?.wallet === address;
 
     const renderAvatar = () => {
         return (
@@ -37,24 +49,43 @@ export const ContactItem: React.FC<ContactItemProps> = ({
         );
     };
 
-    const formatTimestamp = (timestamp: Date) => {
-        const now = new Date();
-        const messageDate = new Date(timestamp);
-        const diffInHours = (now.getTime() - messageDate.getTime()) / (1000 * 60 * 60);
-
-        if (diffInHours < 24) {
-            return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } else if (diffInHours < 168) { // 7 days
-            return messageDate.toLocaleDateString([], { weekday: 'short' });
-        } else {
-            return messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        }
+    const handleItemClick = () => {
+        onClick(contact);
     };
+
+    useEffect(() => {
+        if (lastMessage?.timestamp && isClient) {
+            const timestamp = new Date(lastMessage.timestamp);
+            const now = new Date();
+            
+            // Format timestamp based on how recent it is
+            if (timestamp.toDateString() === now.toDateString()) {
+                // If today, show time only
+                setFormattedTimestamp(format(timestamp, 'HH:mm'));
+            } else if (
+                timestamp.getFullYear() === now.getFullYear() &&
+                timestamp.getMonth() === now.getMonth() &&
+                timestamp.getDate() === now.getDate() - 1
+            ) {
+                // If yesterday
+                setFormattedTimestamp('Yesterday');
+            } else if (
+                timestamp.getFullYear() === now.getFullYear() &&
+                now.getTime() - timestamp.getTime() < 7 * 24 * 60 * 60 * 1000
+            ) {
+                // If within the last 7 days
+                setFormattedTimestamp(format(timestamp, 'EEE'));
+            } else {
+                // Otherwise show date
+                setFormattedTimestamp(format(timestamp, 'dd/MM/yyyy'));
+            }
+        }
+    }, [lastMessage, isClient]);
 
     return (
         <div 
             className={`px-4 py-3 cursor-pointer hover:bg-gray-50 flex items-center border-b border-gray-100 ${active ? 'bg-blue-50' : ''}`}
-            onClick={() => onClick(contact)}
+            onClick={handleItemClick}
         >
             <div className="relative mr-4">
                 {renderAvatar()}
@@ -63,9 +94,20 @@ export const ContactItem: React.FC<ContactItemProps> = ({
                 <div className="flex justify-between items-center">
                     <h3 className="font-medium truncate">{name || `${wallet.slice(0, 6)}...${wallet.slice(-6)}`}</h3>
                     {lastMessage && (
-                        <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                            {formatTimestamp(lastMessage.timestamp)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            {needsReply && (
+                                <CountBadge 
+                                    count={1} 
+                                    variant="destructive" 
+                                    size="xs"
+                                    compact={true}
+                                    pulse={true} 
+                                />
+                            )}
+                            <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                                {formattedTimestamp}
+                            </span>
+                        </div>
                     )}
                 </div>
                 <div className="flex justify-between items-center">

@@ -6,10 +6,12 @@ import Link from "next/link";
 import { themeConfig } from "@/config/theme.config";
 import { NavItems } from "@/config/menu.config";
 import { useActiveWallet } from "@/hooks/useActiveWallet";
+import { useNavigation } from "@/contexts/NavigationContext";
+import { CountBadge } from "@/components/ui/CountBadge";
 
 export default function Header() {
   const { isConnected } = useActiveWallet();
-
+  const { badgeCounts } = useNavigation();
   const pathname = usePathname();
   
   const animationProps = {
@@ -41,6 +43,7 @@ export default function Header() {
           <div className="flex space-x-6">
             {NavItems.map((item) => {
               const isActive = pathname === item.href || pathname.split('/')[1] == item.href.split('/')[1];
+              const badgeCount = item.badgeKey ? badgeCounts[item.badgeKey] : 0;
 
               return (
                 <div key={item.href}>
@@ -54,7 +57,18 @@ export default function Header() {
                     }`}
                   >
                     <span className="flex items-center">
-                      {item.icon}
+                      <span className="relative">
+                        {item.icon}
+                        {badgeCount > 0 && (
+                          <div className="absolute -top-2 -right-2">
+                            <CountBadge 
+                              count={badgeCount} 
+                              variant="destructive" 
+                              size="sm" 
+                            />
+                          </div>
+                        )}
+                      </span>
                       <span className="ml-2">{item.label}</span>
                     </span>
                     

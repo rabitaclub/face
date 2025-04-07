@@ -5,12 +5,15 @@ import Link from "next/link";
 import { themeConfig } from "@/config/theme.config";
 import { NavItems } from "@/config/menu.config";
 import { useState, useEffect, useRef } from "react";
+import { useNavigation } from "@/contexts/NavigationContext";
+import { CountBadge } from "@/components/ui/CountBadge";
 
 export default function BottomNavigation() {
   const pathname = usePathname();
   const navRef = useRef<HTMLDivElement>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [shouldHideNav, setShouldHideNav] = useState(false);
+  const { badgeCounts } = useNavigation();
 
   useEffect(() => {
     // Check if visualViewport API is available (modern browsers)
@@ -81,6 +84,7 @@ export default function BottomNavigation() {
            style={{ "--bottom-nav-height": themeConfig.navigation.bottomNavHeight } as React.CSSProperties}>
         {NavItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const badgeCount = item.badgeKey ? badgeCounts[item.badgeKey] : 0;
           
           return (
             <Link 
@@ -91,6 +95,17 @@ export default function BottomNavigation() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   {item.icon}
+                  {badgeCount > 0 && (
+                    <div className="absolute -top-1 -right-1">
+                      <CountBadge 
+                        count={badgeCount} 
+                        variant="destructive" 
+                        size="xs"
+                        context="bottomNav"
+                        compact={badgeCount === 1}
+                      />
+                    </div>
+                  )}
                   {isActive && (
                     <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[var(--background)]" />
                   )}

@@ -19,6 +19,9 @@ import { useMessaging } from '@/hooks/useMessaging';
 import { Button } from '@/components/ui/Button';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
 import CustomConnect from '@/components/CustomConnect';
+import { CountBadge } from '@/components/ui/CountBadge';
+import { useUnrepliedMessages } from './hooks/useUnrepliedMessages';
+
 interface MessagingContainerProps {
     initialKolAddress?: `0x${string}`;
 }
@@ -85,6 +88,8 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         maxChatWidth: 75,
         defaultMobileBreakpoint: 768
     });
+
+    const { count: unrepliedCount } = useUnrepliedMessages();
 
     useEffect(() => {
         if (!isClient) return;
@@ -296,7 +301,15 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
                             <div className="h-full flex flex-col">
                                 <div className="flex-none p-4 border-b border-gray-200 bg-white">
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
+                                            <CountBadge 
+                                                count={unrepliedCount} 
+                                                variant="destructive" 
+                                                size="sm"
+                                                pulse={unrepliedCount > 0}
+                                            />
+                                        </div>
                                         <div className="w-8 h-8" /> {/* Spacer for alignment */}
                                     </div>
                                 </div>
