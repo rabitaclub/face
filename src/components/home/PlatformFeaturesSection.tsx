@@ -1,5 +1,6 @@
 import { FaRobot, FaWallet, FaLock, FaShieldAlt, FaUserCheck, FaNetworkWired, FaChartLine, FaClock, FaHandshake, FaMailBulk } from "react-icons/fa";
 import { HiLightningBolt, HiChatAlt2, HiCurrencyDollar, HiUserGroup } from "react-icons/hi";
+import { Layers } from "lucide-react";
 
 interface FeatureCardProps {
   icon: React.ReactNode;
@@ -39,6 +40,11 @@ export const PlatformFeaturesSection = () => {
     <section className="py-16 bg-background-light/5 relative overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Layers className="h-8 w-8 text-primary" />
+            </div>
+          </div>
           <h2 className="text-4xl font-bold mb-4 text-white">platform <span className="text-primary">features</span></h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             advanced capabilities for seamless kol engagement

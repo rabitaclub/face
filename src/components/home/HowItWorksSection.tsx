@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { HelpCircle } from "lucide-react";
 
 interface StepProps {
   number: number;
@@ -53,7 +54,12 @@ export const HowItWorksSection = () => {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold mb-4 text-white">how <span className="text-primary">it </span>works</h2>
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <HelpCircle className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+          <h2 className="text-4xl font-bold mb-4 text-white">how <span className="text-primary">it </span> works</h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             simple, secure, and efficient process for connecting with kols
           </p>

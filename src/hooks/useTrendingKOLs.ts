@@ -211,7 +211,7 @@ export function useTrendingKOLs({
         
         // Count active conversations
         const activeConversations = (kol.activePairsAsKOL || []).filter(
-          pair => pair.isActive && pair.conversation?.id
+          pair => pair.conversation?.id
         ).length;
         
         // Calculate daily activity

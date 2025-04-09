@@ -1,4 +1,4 @@
-import { MessageSquare, User, Search, Home } from "lucide-react";
+import { MessageSquare, User, Search, Home, Users, UserPlus } from "lucide-react";
 
 export interface NavItem {
     icon: React.ReactNode;
@@ -13,6 +13,11 @@ export const NavItems: NavItem[] = [
     label: "Home",
     href: "/",
   },
+  // {
+  //   icon: <UserPlus size={18} />,
+  //   label: "Connect",
+  //   href: "/connect",
+  // },
   {
     icon: <MessageSquare size={18} />,
     label: "Messages",

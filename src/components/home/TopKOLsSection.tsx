@@ -8,6 +8,7 @@ import { FiLoader } from 'react-icons/fi';
 import { FileScanIcon, ScanSearchIcon } from 'lucide-react';
 import { useTrendingKOLs, TrendingKOLProfile } from '@/hooks/useTrendingKOLs';
 import { useRouter } from 'next/navigation';
+import { TrendingUp, TrendingUpIcon } from 'lucide-react';
 
 // Sample data for demonstration
 interface KOLMetrics {
@@ -161,24 +162,41 @@ export const TopKOLsSection = () => {
   
   return (
     <motion.section
-      className="py-6 sm:py-16 overflow-hidden relative"
+      className="py-16 relative overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-background-dark/50 to-background/80 pointer-events-none"></div>
-      <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-center opacity-10 pointer-events-none"></div>
-      
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 relative">
+      <div className="max-w-6xl mx-auto px-4">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-white">top <span className="text-foreground">engagements</span></h2>
+          {/* <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <TrendingUp className="h-8 w-8 text-primary" />
+            </div>
+          </div> */}
+          <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">top <span className="text-foreground">engagements</span></h2>
+            <motion.div 
+              className="text-primary"
+              animate={{ 
+                y: [0, -3, 0],
+                transition: { 
+                  duration: 1.5, 
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }
+              }}
+            >
+              <TrendingUpIcon className="h-6 w-6" />
+            </motion.div>
+          </div>
           <p className="text-base sm:text-lg text-gray-300 max-w-3xl mx-auto">
-            connect with our most active and rewarded key opinion leaders
+            discover and connect with the most active kols on the platform
           </p>
         </motion.div>
 

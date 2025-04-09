@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import CustomConnect from "@/components/CustomConnect";
 import { useActiveWallet } from "@/hooks/useActiveWallet";
+import { Rocket } from "lucide-react";
 
 interface OnboardingStep {
   title: string;
@@ -34,6 +35,11 @@ export const OnboardingSection = () => {
   return (
     <section id="onboarding" className="py-16">
       <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-center mb-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Rocket className="h-8 w-8 text-primary" />
+          </div>
+        </div>
         <h2 className="text-3xl font-bold text-center mb-4 text-white">get <span className="text-primary">started</span></h2>
         <p className="text-center text-gray-300 mb-8">follow these simple steps to begin your decentralized connections journey</p>
         

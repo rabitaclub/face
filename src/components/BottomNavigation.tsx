@@ -102,6 +102,7 @@ export default function BottomNavigation() {
                         variant="destructive" 
                         size="xs"
                         context="bottomNav"
+                        pulse={badgeCount > 0}
                         compact={badgeCount === 1}
                       />
                     </div>

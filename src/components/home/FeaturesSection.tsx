@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { FaLock, FaNetworkWired } from "react-icons/fa";
 import { HiLightningBolt } from "react-icons/hi";
+import { Sparkles } from "lucide-react";
 
 interface Feature {
   title: string;
@@ -49,6 +50,11 @@ export const FeaturesSection = ({ features, onFeatureClick }: FeaturesSectionPro
           variants={itemVariants}
           className="text-center mb-12"
         >
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+          </div>
           <h2 className="text-4xl font-bold mb-4 text-white">why choose <span className="text-primary">rabita</span>?</h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             pioneering the future of decentralized engagement, inspired by <a target="_blank" href="https://www.binance.com/en/square/post/21262724104305" className="text-primary hover:text-primary-light transition-colors">CZ</a>
