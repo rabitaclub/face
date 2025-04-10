@@ -19,7 +19,6 @@ import {
   useSignTypedData
 } from 'wagmi';
 import { Address, parseEther, parseAbi, ContractFunctionExecutionError } from 'viem';
-import BNBLogo from '../icons/BNBLogo';
 import Image from 'next/image';
 import appConfig from '@/config/app.config.json';
 import RABITA_REGISTRY_ABI from '@/config/rabita.abi.json';
@@ -28,6 +27,7 @@ import RabitaLogo from '../icons/RabitaLogo';
 import { useMessaging } from '@/hooks/useMessaging';
 import { env } from '@/config/env';
 import TagSelector from './components/TagSelector';
+import { useChainData } from '@/hooks/useChainData';
 
 const RABITA_REGISTRY_ADDRESS = env.RABITA_REGISTRY_ADDRESS as Address;
 
@@ -84,6 +84,8 @@ export default function KOLRegistrationView() {
   const effectiveSocialHandle = twitterUsername || '';
   const effectiveName = twitterName || effectiveSocialHandle || '';  
   const effectiveProfileImageUrl = (typeof twitterImage === 'string' ? twitterImage : undefined);
+
+  const { symbol, explorer, logo } = useChainData();
 
   useEffect(() => {
     setRegistrationStatus('idle');
@@ -352,7 +354,7 @@ export default function KOLRegistrationView() {
               rel="noopener noreferrer"
               className="text-xs text-white hover:underline mt-1"
             >
-              View on BscScan
+              View on {explorer}
             </a>
           </div>,
           { duration: 5000 }
@@ -360,7 +362,7 @@ export default function KOLRegistrationView() {
         
         setTransactionSubmitted(true);
         setTimeout(() => {
-          toast.success('Your KOL profile is being created on the BSC!', {
+          toast.success('Your KOL profile is being created!', {
             id: toastId,
             icon: '🚀',
             duration: 5000
@@ -492,7 +494,7 @@ export default function KOLRegistrationView() {
           <Image src="/logo.svg" alt="logo" className='mx-auto mb-4' width={200} height={200}/>
           <h2 className="text-2xl font-bold mb-2 text-primary">welcome to {appConfig.name}!</h2>
           <p className="text-muted-foreground mb-4 text-primary/80">
-            Your KOL profile has been successfully created on the binance smart chain.
+            Your KOL profile has been successfully created.
           </p>
           <Loader2 className="animate-spin text-primary text-center mx-auto" size={16} />
           <p className="text-sm text-muted-foreground text-primary/40">
@@ -565,10 +567,10 @@ export default function KOLRegistrationView() {
             
             <div className="flex flex-col items-center text-center p-4 rounded-lg shadow-elevation bg-background-light">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <BNBLogo className="text-primary" size={20} />
+                {logo({ className: 'text-primary' })}
               </div>
               <h3 className="font-medium mb-1 text-foreground">Set Custom Fees</h3>
-              <p className="text-sm text-muted-foreground text-white">Determine your own rates for interactions and monetize your influence in BNB</p>
+              <p className="text-sm text-muted-foreground text-white">Determine your own rates for interactions and monetize your influence in {symbol}</p>
             </div>
             
             <div className="flex flex-col items-center text-center p-4 rounded-lg shadow-elevation bg-background-light">
@@ -591,7 +593,7 @@ export default function KOLRegistrationView() {
                   </div>
                   
                   <div className="absolute -bottom-5 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center animate-[float_3.2s_ease-in-out_0.7s_infinite]">
-                    <BNBLogo className="w-3 h-3 text-primary" size={12} />
+                    {logo({ className: 'text-primary' })}
                   </div>
                 </div>
               </div>
@@ -659,8 +661,8 @@ export default function KOLRegistrationView() {
                       
                       <div className="mt-5 space-y-1.5">
                         <label htmlFor="messageFee" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 normal-case">
-                          <BNBLogo size={14} className="text-primary" />
-                          message fee (BNB)
+                          {logo({ className: 'text-primary' })}
+                          message fee ({symbol})
                         </label>
                         <div className="relative">
                           <input
@@ -677,13 +679,13 @@ export default function KOLRegistrationView() {
                             aria-describedby="fee-description"
                           />
                           <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                            <span className="text-sm font-medium text-gray-500 normal-case">BNB</span>
+                            <span className="text-sm font-medium text-gray-500 normal-case">{symbol}</span>
                           </div>
                         </div>
                         <div className="flex items-start gap-2 mt-1.5" id="fee-description">
                           <FiInfo className="shrink-0 mt-0.5 text-gray-400" size={14} />
                           <p className="text-xs text-gray-500 normal-case">
-                            This is the amount users will pay to reach you. We recommend a moderate amount (0.1-1 BNB) to maximize engagement.
+                            This is the amount users will pay to reach you. We recommend a moderate amount ({symbol}) to maximize engagement.
                           </p>
                         </div>
                         {parseFloat(formData.fee) <= 0 && (
@@ -752,7 +754,7 @@ export default function KOLRegistrationView() {
                     </div>
                     
                     <p className="text-xs text-center text-gray-500 mt-2">
-                      By registering, you agree to the Rabita terms of service and will be registered on the BSC blockchain
+                      By registering, you agree to the Rabita terms of service and will be registered on the {symbol} blockchain
                     </p>
                   </form>
                 </div>

@@ -29,6 +29,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
 
     const { decryptedMessage, isLoading: isDecryptedMessageLoading } = useDecryptedMessage(message);
 
+    console.debug('rendered')
+
     return (
         <div className={`flex flex-col mb-4 ${message.senderId.toLowerCase() === address?.toLowerCase() ? 'items-end' : 'items-start'}`}>
             <div className={`max-w-[70%] px-4 py-2 rounded-lg text-sm ${

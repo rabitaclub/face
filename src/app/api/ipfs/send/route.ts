@@ -10,7 +10,8 @@ import * as W3Client from '@web3-storage/w3up-client'
 import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import { signToEncryptMessage } from '@/utils/signatureUtils';
 import { encryptMessage } from '@/utils/encryption';
-
+import fs from 'fs';
+import { put } from "@vercel/blob";
 export interface MessagePayload {
   content: string;
   userContent: string;
@@ -197,6 +198,32 @@ class Web3StorageAdapter {
   }
 }
 
+class LocalStorageAdapter {
+  async storeAndSave(messageId: string, message: MessagePayload) {
+    const timestamp = new Date().toISOString();
+
+    const messageData = {
+      ...message,
+      messageId,
+      timestamp,
+    };
+
+    // await fs.writeFileSync(`/public/messages/${messageId}.json`, JSON.stringify(messageData));
+    const { url } = await put(`messages/${messageId}.json`, JSON.stringify(messageData), {
+      access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN!,
+    });
+
+    console.log(url)
+
+    return {
+      messageId,
+      gatewayUrl: url,
+      timestamp,
+    };
+  }
+}
+
 function validateRateLimit(clientIp: string): { 
   allowed: boolean; 
   remaining: number; 
@@ -324,14 +351,17 @@ export async function POST(request: NextRequest): Promise<Response> {
       // } catch (error) {
       //   console.warn('Greenfield upload failed, falling back to Web3.Storage:', error);
         
-      const principal = Signer.parse(process.env.W3_KEY!)
-      const store = new StoreMemory()
-      const client = await W3Client.create({ principal, store })
-      const w3Adapter = new Web3StorageAdapter(client);
-      await w3Adapter.initialize();
+      // const principal = Signer.parse(process.env.W3_KEY!)
+      // const store = new StoreMemory()
+      // const client = await W3Client.create({ principal, store })
+      // const w3Adapter = new Web3StorageAdapter(client);
+      // await w3Adapter.initialize();
       
-      result = await w3Adapter.uploadMessage(messagePayload);
+      // result = await w3Adapter.uploadMessage(messagePayload);
       // }
+
+      const adapter = new LocalStorageAdapter();
+      result = await adapter.storeAndSave(messageId, messagePayload);
 
       const encryptedData = result.gatewayUrl;
 

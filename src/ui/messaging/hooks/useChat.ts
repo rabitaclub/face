@@ -206,6 +206,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, [isSuccess, isError, error, address, message.kolProfile.wallet, queryClient]);
 
     const handleIPFSUpload = useCallback(async () => {
+        if (isLoading || isIPFSUploaded) return;
         if (!message.kolProfile.pgpKey?.publicKey || !userPGPKey) {
             setChatStatus("Error: Missing encryption key");
             setIsErrorInCall(true);
@@ -278,14 +279,14 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, [message, userPGPKey, receiverPGPKey, kolPGPNonce]);
 
     const handleContractCall = useCallback(async () => {
-        console.debug('handleContractCallData', isIPFSUploaded, message.id, message.kolProfile?.pgpKey?.publicKey);
+        // console.debug('handleContractCallData', isIPFSUploaded, message.id, message.kolProfile?.pgpKey?.publicKey);
         if (!isIPFSUploaded || isInTransaction || transactionHash) return;
 
         setChatStatus("Sending message...");
         setIsInTransaction(true);
         
         try {
-            let isResponding = message.id > 0 && message.kolProfile?.pgpKey?.publicKey === "0x";
+            let isResponding = message.id > 0;
             console.debug('isResponding', isResponding, message.id, message.kolProfile?.pgpKey?.publicKey);
             let userPGPNonce = '1'
 
@@ -304,7 +305,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
                     userPGPNonce,
                     ipfsHash
                 ],
-                value: message.kolProfile.fee
+                value: !isResponding ? message.kolProfile.fee : BigInt(0)
             });
             
             setTransactionHash(tx);
@@ -353,13 +354,13 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, []);
 
     useEffect(() => {
-        if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered && !isLoadingPGPKeys && !isErrorInCall) {
+        if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered && !isLoadingPGPKeys && !isErrorInCall && !isLoading) {
             console.debug('calling handleIPFSUpload');
             setTimeout(() => {
                 handleIPFSUpload();
             }, 2000);
         }
-    }, [handleIPFSUpload, isIPFSUploaded, message, isLoadingPGPKeys, isErrorInCall]);
+    }, [handleIPFSUpload, isIPFSUploaded, message, isLoadingPGPKeys, isErrorInCall, isLoading]);
 
     useEffect(() => {
         console.debug('calling handleContractCall', isIPFSUploaded, isInTransaction, isTxnLoading, isMessageSent, message.isTransactionProcessed, message.delivered, isErrorInCall);

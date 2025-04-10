@@ -23,7 +23,7 @@ export default function ConnectedAccounts() {
   } = useTwitterVerification();
 
   return (
-    <div className="mb-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-scroll">
+    <div className="mb-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
         <h3 className="text-base font-semibold text-gray-800 lowercase">Connected Accounts</h3>
         <p className="text-xs text-gray-500 mt-0.5 lowercase">Accounts linked to your Rabita profile</p>

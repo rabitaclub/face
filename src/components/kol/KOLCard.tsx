@@ -519,7 +519,7 @@ const KOLCard: React.FC<KOLCardProps> = ({
               <div className="flex items-center text-gray-800 mb-0.5 sm:mb-1">
                 <FiMessageCircle size={12} />
               </div>
-              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.metrics.activeConversations}</span>
+              <span className={`font-bold ${(kol?.formattedFee?.length ?? 0) > 3 ? 'text-[12px]' : 'text-xs sm:text-base'} text-gray-800`}>{kol.metrics.activeConversations}</span>
               <span className="text-[10px] sm:text-xs text-gray-600">messages</span>
             </motion.div>
             
@@ -533,8 +533,10 @@ const KOLCard: React.FC<KOLCardProps> = ({
               <div className="flex items-center text-gray-800 mb-0.5 sm:mb-1">
                 <FiDollarSign size={12} />
               </div>
-              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.metrics.totalFees}</span>
-              <span className="text-[10px] sm:text-xs text-gray-600">BNB earned</span>
+              <span className={`font-bold ${(kol?.formattedFee?.length ?? 0) > 3 ? 'text-[12px]' : 'text-[2px] sm:text-base'} text-gray-800`}>
+                {Number(parseFloat(kol.metrics.totalFees).toFixed(4))} BNB
+              </span>
+              <span className="text-[10px] sm:text-xs text-gray-600">earned</span>
             </motion.div>
             
             <motion.div 
@@ -547,8 +549,10 @@ const KOLCard: React.FC<KOLCardProps> = ({
               <div className="flex items-center text-gray-800 mb-0.5 sm:mb-1">
                 <FiDollarSign size={12} />
               </div>
-              <span className="font-bold text-xs sm:text-base text-gray-800">{kol.formattedFee}</span>
-              <span className="text-[10px] sm:text-xs text-gray-600">BNB fee</span>
+              <span className={`font-bold ${(kol?.formattedFee?.length ?? 0) > 3 ? 'text-[12px]' : 'text-xs sm:text-base'} text-gray-800`}>
+                {Number(parseFloat(kol?.formattedFee ?? '0').toFixed(4))} BNB
+              </span>
+              <span className="text-[10px] sm:text-xs text-gray-600">fee</span>
             </motion.div>
           </div>
           

@@ -14,8 +14,8 @@ export const useMessage = (ipfsHash: string) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['message', ipfsHash],
     queryFn: () => getMessage(ipfsHash),
-    staleTime: 1000 * 5,
-    refetchInterval: 1000 * 5,
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5,
   });
 
   return {

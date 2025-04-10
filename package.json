@@ -33,6 +33,7 @@
     "@tanstack/react-query": "^5.68.0",
     "@types/moment": "^2.13.0",
     "@uiw/react-md-editor": "^4.0.5",
+    "@vercel/blob": "^1.0.0",
     "@web3-storage/access": "^20.2.0",
     "@web3-storage/w3up-client": "^17.2.0",
     "cid": "multiformats/cid",

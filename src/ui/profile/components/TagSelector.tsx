@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { FiTag, FiX } from 'react-icons/fi';
 import { cn } from '@/utils/cn';
@@ -100,6 +100,8 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeCategory, setActiveCategory] = useState<keyof typeof PREDEFINED_TAGS>('technical');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   // Filter tags based on search query
   const filteredTags = searchQuery.trim() 
@@ -114,10 +116,31 @@ const TagSelector: React.FC<TagSelectorProps> = ({
     onTagsChange(selectedTags.join(','));
   }, [selectedTags, onTagsChange]);
   
+  // Handle clicks outside the dropdown to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
   const handleTagSelect = (tag: string) => {
     if (selectedTags.length < maxTags && !selectedTags.includes(tag)) {
       setSelectedTags([...selectedTags, tag]);
       setSearchQuery('');
+      // Keep focus on input after selecting a tag
+      inputRef.current?.focus();
     }
   };
   
@@ -166,24 +189,22 @@ const TagSelector: React.FC<TagSelectorProps> = ({
         {/* Tag input */}
         <div className="relative">
           <input
+            ref={inputRef}
             type="text"
             placeholder="search for expertise tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowDropdown(true)}
-            onBlur={() => {
-              // Use setTimeout to allow click events on dropdown items to fire first
-              setTimeout(() => {
-                setShowDropdown(false);
-              }, 200);
-            }}
             className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all duration-200"
             disabled={selectedTags.length >= maxTags}
           />
           
           {/* Categories */}
           {showDropdown && selectedTags.length < maxTags && (
-            <div className="absolute z-20 mt-1 w-full bg-white rounded-md shadow-lg border border-gray-200">
+            <div 
+              ref={dropdownRef}
+              className="absolute z-20 mt-1 w-full bg-white rounded-md shadow-lg border border-gray-200"
+            >
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 p-2 border-b border-gray-100">
                 {Object.keys(PREDEFINED_TAGS).map((category) => (
                   <button
