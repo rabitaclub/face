@@ -282,7 +282,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         // console.debug('handleContractCallData', isIPFSUploaded, message.id, message.kolProfile?.pgpKey?.publicKey);
         if (!isIPFSUploaded || isInTransaction || transactionHash) return;
 
-        setChatStatus("Sending message...");
+        setChatStatus("Awaiting confirmation...");
         setIsInTransaction(true);
         
         try {
