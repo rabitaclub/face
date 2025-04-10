@@ -279,7 +279,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
 
     const handleContractCall = useCallback(async () => {
         console.debug('handleContractCallData', isIPFSUploaded, message.id, message.kolProfile?.pgpKey?.publicKey);
-        if (!isIPFSUploaded || isInTransaction) return;
+        if (!isIPFSUploaded || isInTransaction || transactionHash) return;
 
         setChatStatus("Sending message...");
         setIsInTransaction(true);
@@ -363,11 +363,11 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
 
     useEffect(() => {
         console.debug('calling handleContractCall', isIPFSUploaded, isInTransaction, isTxnLoading, isMessageSent, message.isTransactionProcessed, message.delivered, isErrorInCall);
-        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered && !isErrorInCall) {
+        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered && !isErrorInCall && !transactionHash) {
             console.debug('calling handleContractCall');
             handleContractCall();
         }
-    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message, isErrorInCall]);
+    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message, isErrorInCall, transactionHash]);
 
     return useMemo(() => ({
         chatStatus,
