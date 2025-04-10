@@ -13,6 +13,10 @@ import { useGraphQuery } from '@/hooks/useGraphQuery';
 import { GraphQLResponse } from '../types';
 import { usePGPKeys } from './usePGPKeys';
 import { useQueryClient } from '@tanstack/react-query';
+import { keccak256, toHex } from 'viem';
+import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
+
+const NAMESPACE_UUID = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 
 const RABITA_MESSAGING_ADDRESS = env.RABITA_MESSAGING_ADDRESS as Address;
 const PANEL_CLOSE_DELAY = 250;
@@ -88,7 +92,7 @@ export function useChat(): UseChatReturn {
         setChatMessages(prev => {
             const currentMessages = prev[selectedContact.wallet] || [];
             const lastMessage = currentMessages[currentMessages.length - 1];
-            const replyToMessageId = lastMessage?.id ?? -1;
+            const replyToMessageId = ( lastMessage?.receiverId === message.senderId ) ? lastMessage?.id : -1;
 
             console.debug('replyToMessageId', replyToMessageId, lastMessage, currentMessages);
 
@@ -169,6 +173,10 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     const { checkExistingKeys, publicKey: userPGPKey } = useMessaging();
     const { address } = useActiveWallet();
     const queryClient = useQueryClient();
+    
+    // Add refs to track if operations have been initiated
+    const ipfsUploadInitiatedRef = useRef(false);
+    const contractCallInitiatedRef = useRef(false);
 
     const { publicKey: receiverPGPKey, pgpNonce: kolPGPNonce, isLoadingPGPKeys } = usePGPKeys(message.kolProfile.wallet);
 
@@ -206,13 +214,14 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, [isSuccess, isError, error, address, message.kolProfile.wallet, queryClient]);
 
     const handleIPFSUpload = useCallback(async () => {
-        if (isLoading || isIPFSUploaded) return;
         if (!message.kolProfile.pgpKey?.publicKey || !userPGPKey) {
             setChatStatus("Error: Missing encryption key");
             setIsErrorInCall(true);
             setIsLoading(false);
             return;
         }
+
+        console.debug('handleIPFSUpload called at', Date.now());
 
         setChatStatus("Preparing message...");
         setIsLoading(true);
@@ -231,6 +240,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
             const userEncryptedMessage = await encryptMessage(message.text, userPGPKey);
             const jsonBody = {
                 content: encryptedMessage,
+                messageHash: uuidv5(new TextEncoder().encode(message.text+"["+message.senderId+"-"+message.receiverId+"]"), NAMESPACE_UUID),
                 userContent: userEncryptedMessage,
                 metadata: {
                     senderId: message.senderId,
@@ -259,7 +269,7 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
                 timestamp: string;
             };
 
-            console.debug('handleIPFSUpload', data);
+            console.debug('handleIPFSUpload completed', data);
 
             if (data.gatewayUrl) {
                 setIsIPFSUploaded(true);
@@ -279,9 +289,10 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
     }, [message, userPGPKey, receiverPGPKey, kolPGPNonce]);
 
     const handleContractCall = useCallback(async () => {
-        // console.debug('handleContractCallData', isIPFSUploaded, message.id, message.kolProfile?.pgpKey?.publicKey);
         if (!isIPFSUploaded || isInTransaction || transactionHash) return;
 
+        console.debug('handleContractCall called at', Date.now());
+        
         setChatStatus("Awaiting confirmation...");
         setIsInTransaction(true);
         
@@ -290,8 +301,6 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
             console.debug('isResponding', isResponding, message.id, message.kolProfile?.pgpKey?.publicKey);
             let userPGPNonce = '1'
 
-            // console.debug('handleContractCall', isResponding, message.id, ipfsHash, message.senderId, message.receiverId, pgpPublicKey, pgpNonce);
-            // return;
             const tx = await writeContractAsync({
                 address: RABITA_MESSAGING_ADDRESS,
                 abi: RABITA_MESSAGING_ABI,
@@ -344,6 +353,9 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         setIsMessageSent(false);
         setTransactionHash(undefined);
         setChatStatus(undefined);
+        // Reset the refs when retrying
+        ipfsUploadInitiatedRef.current = false;
+        contractCallInitiatedRef.current = false;
     }, []);
 
     useEffect(() => {
@@ -353,22 +365,47 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         };
     }, []);
 
+    // Single useEffect to handle the message sending flow
     useEffect(() => {
-        if (!isIPFSUploaded && !message.isTransactionProcessed && !message.delivered && !isLoadingPGPKeys && !isErrorInCall && !isLoading) {
-            console.debug('calling handleIPFSUpload');
-            setTimeout(() => {
-                handleIPFSUpload();
-            }, 2000);
+        // Skip if we're already in a processing state
+        if (isLoading || isInTransaction || isTxnLoading) return;
+        
+        // Skip if we've already processed this message
+        if (message.isTransactionProcessed || message.delivered || isMessageSent) return;
+        
+        // Skip if we're waiting for PGP keys to load
+        if (isLoadingPGPKeys) return;
+        
+        // Skip if there's an error
+        if (isErrorInCall) return;
+        
+        // Handle IPFS upload if needed
+        if (!isIPFSUploaded && !ipfsUploadInitiatedRef.current) {
+            console.debug('Initiating IPFS upload');
+            ipfsUploadInitiatedRef.current = true;
+            handleIPFSUpload();
+            return;
         }
-    }, [handleIPFSUpload, isIPFSUploaded, message, isLoadingPGPKeys, isErrorInCall, isLoading]);
-
-    useEffect(() => {
-        console.debug('calling handleContractCall', isIPFSUploaded, isInTransaction, isTxnLoading, isMessageSent, message.isTransactionProcessed, message.delivered, isErrorInCall);
-        if (isIPFSUploaded && !isInTransaction && !isTxnLoading && !isMessageSent && !message.isTransactionProcessed && !message.delivered && !isErrorInCall && !transactionHash) {
-            console.debug('calling handleContractCall');
+        
+        // Handle contract call if IPFS upload is complete
+        if (isIPFSUploaded && !contractCallInitiatedRef.current && !transactionHash) {
+            console.debug('Initiating contract call');
+            contractCallInitiatedRef.current = true;
             handleContractCall();
         }
-    }, [isIPFSUploaded, handleContractCall, isInTransaction, isTxnLoading, isMessageSent, message, isErrorInCall, transactionHash]);
+    }, [
+        isIPFSUploaded, 
+        isInTransaction, 
+        isTxnLoading, 
+        isMessageSent, 
+        message, 
+        isErrorInCall, 
+        isLoading, 
+        isLoadingPGPKeys,
+        transactionHash,
+        handleIPFSUpload,
+        handleContractCall
+    ]);
 
     return useMemo(() => ({
         chatStatus,

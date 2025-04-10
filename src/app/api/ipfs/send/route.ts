@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import appConfig from '@/config/app.config.json';
 import { client } from '@/config/greenfield';
 import { Client, DelegatedPubObjectRequest, Long, VisibilityType } from '@bnb-chain/greenfield-js-sdk';
@@ -11,7 +11,7 @@ import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import { signToEncryptMessage } from '@/utils/signatureUtils';
 import { encryptMessage } from '@/utils/encryption';
 import fs from 'fs';
-import { put } from "@vercel/blob";
+import { getDownloadUrl, head, put } from "@vercel/blob";
 export interface MessagePayload {
   content: string;
   userContent: string;
@@ -26,7 +26,7 @@ export interface MessagePayload {
 
 export interface SendResult {
   messageId: string;
-  gatewayUrl: string;
+  gatewayUrl: string | undefined;
   timestamp: string;
 }
 
@@ -34,7 +34,6 @@ const MAX_MESSAGE_SIZE = 4330; // 2000 characters in encrypted form
 const RATE_LIMIT = 10; // messages per minute
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const rateLimitStore: Map<string, { count: number; timestamp: number }> = new Map();
-
 class GreenfieldAdapter {
   private client: Client;
   private sp: {
@@ -208,17 +207,24 @@ class LocalStorageAdapter {
       timestamp,
     };
 
-    // await fs.writeFileSync(`/public/messages/${messageId}.json`, JSON.stringify(messageData));
-    const { url } = await put(`messages/${messageId}.json`, JSON.stringify(messageData), {
-      access: 'public',
-      token: process.env.BLOB_READ_WRITE_TOKEN!,
-    });
+    let gatewayUrl: string | undefined;
+    try {
+      let { url } = await put(`messages/${messageId}.json`, JSON.stringify(messageData), {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN!,
+        contentType: 'application/json'
+      });
+      gatewayUrl = url;
+    } catch (error) {
+      let downloadUrl = await head(`messages/${messageId}.json`);
+      gatewayUrl = downloadUrl.url;
+    }
 
-    console.log(url)
+    // console.log(gatewayUrl)
 
     return {
       messageId,
-      gatewayUrl: url,
+      gatewayUrl: gatewayUrl,
       timestamp,
     };
   }
@@ -268,13 +274,15 @@ function validateRateLimit(clientIp: string): {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const messageId = uuidv4();
+  // Initialize with a random UUID, will be replaced with a deterministic one if we have a message hash
+  let messageId: string = uuidv4();
   
   try {
     const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
     const rateLimitResult = validateRateLimit(clientIp);
     
     if (!rateLimitResult.allowed) {
+      // For rate limit errors, we'll keep the random messageId
       const response = NextResponse.json(
         { 
           error: 'Too many message requests. Please try again later.',
@@ -297,6 +305,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     const contentType = request.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
+      // For invalid content type, we'll keep the random messageId
       return NextResponse.json(
         { 
           error: 'Invalid request format. Expected application/json.',
@@ -309,6 +318,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const body = await request.json();
     
     if (!body.content || typeof body.content !== 'string') {
+      // For invalid content, we'll keep the random messageId
       return NextResponse.json(
         { 
           error: 'Message content is required and must be a string',
@@ -320,6 +330,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     
     const messageSize = new TextEncoder().encode(body.content).length;
     if (messageSize > MAX_MESSAGE_SIZE) {
+      // For oversized messages, we'll keep the random messageId
       return NextResponse.json(
         { 
           error: `Message size must not exceed 2000 characters!`,
@@ -328,14 +339,14 @@ export async function POST(request: NextRequest): Promise<Response> {
         { status: 413 }
       );
     }
-
-    console.debug(body)
+    
+    messageId = body.messageHash;
 
     const messagePayload: MessagePayload = {
       userContent: body.userContent,
       content: body.content,
       timestamp: new Date().toISOString(),
-      messageId,
+      messageId: body.messageHash,
       metadata: body.metadata || {}
     };
 
