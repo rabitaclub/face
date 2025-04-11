@@ -209,7 +209,8 @@ class LocalStorageAdapter {
 
     let gatewayUrl: string | undefined;
     try {
-      let { url } = await put(`messages/${messageId}.json`, JSON.stringify(messageData), {
+      let date = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      let { url } = await put(`messages/${date}/${messageId}.json`, JSON.stringify(messageData), {
         access: 'public',
         token: process.env.BLOB_READ_WRITE_TOKEN!,
         contentType: 'application/json'
