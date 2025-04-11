@@ -170,6 +170,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         const newValue = e.target.value;
         setCharCount(newValue.length);
         onMessageChange(newValue);
+        // scrollToBottom();
     };
 
     const renderAvatar = () => {
@@ -213,6 +214,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             document.body.style.overflow = '';
         };
     }, []);
+
+    useEffect(() => {
+        // console.debug('messages', messages);
+        scrollToBottom();
+    }, [messages, scrollToBottom]);
     
     return (
         <div
@@ -334,12 +340,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     </div>
                 )}
 
-                {messages?.map(message => (
-                    <ChatMessage
-                        key={message.text}
-                        message={message}
-                    />
-                ))}
+                <div className="flex-1 flex flex-col justify-end min-h-full">
+                    {messages?.map(message => (
+                        <ChatMessage
+                            key={message.timestamp.toISOString()}
+                            message={message}
+                        />
+                    ))}
+                </div>
                 <div ref={messagesEndRef} />
 
                 {/* Floating scroll to bottom button */}

@@ -91,10 +91,8 @@ export function useChat(): UseChatReturn {
 
         setChatMessages(prev => {
             const currentMessages = prev[selectedContact.wallet] || [];
-            const lastMessage = currentMessages[currentMessages.length - 1];
-            const replyToMessageId = ( lastMessage?.receiverId === message.senderId ) ? lastMessage?.id : -1;
-
-            console.debug('replyToMessageId', replyToMessageId, lastMessage, currentMessages);
+            const firstMessage = currentMessages[0];
+            const replyToMessageId = ( firstMessage?.receiverId?.toLowerCase() === message.senderId?.toLowerCase() ) ? firstMessage?.id : -1;
 
             const newMessage = {
                 ...message,
@@ -380,7 +378,8 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
         if (isErrorInCall) return;
         
         // Handle IPFS upload if needed
-        if (!isIPFSUploaded && !ipfsUploadInitiatedRef.current) {
+        let pgpPublicKey = message.kolProfile?.pgpKey?.publicKey !== "0x" ? message.kolProfile?.pgpKey?.publicKey : receiverPGPKey;
+        if (!isIPFSUploaded && !ipfsUploadInitiatedRef.current && pgpPublicKey) {
             console.debug('Initiating IPFS upload');
             ipfsUploadInitiatedRef.current = true;
             handleIPFSUpload();
@@ -394,8 +393,9 @@ export const useChatMessage = (message: Message): UseChatMessageReturn => {
             handleContractCall();
         }
     }, [
+        receiverPGPKey,
         isIPFSUploaded, 
-        isInTransaction, 
+        isInTransaction,
         isTxnLoading, 
         isMessageSent, 
         message, 
@@ -500,7 +500,10 @@ export const useConversation = (contact: KOLProfile | null) => {
                 });
             });
             
-            setParsedMessages(allMessages.reverse());
+            // Use reverse to get chronological order (oldest at top, newest at bottom)
+            setParsedMessages(allMessages.sort((a, b) => 
+                a.timestamp.getTime() - b.timestamp.getTime()
+            ));
         } catch (error) {
             console.error("Error processing conversation messages:", error);
             setParsedMessages([]);
