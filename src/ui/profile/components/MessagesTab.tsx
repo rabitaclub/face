@@ -17,7 +17,7 @@ export function MessagesTab({ profile }: MessagesTabProps) {
         variant="outline"
         className='bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200' 
         onClick={() => {
-          navigator.clipboard.writeText(`${appConfig.url}/message/${profile.handle}`);
+          navigator.clipboard.writeText(`${appConfig.url}/messages/${profile.handle}`);
           toast.success('Profile link copied to clipboard!');
         }}
       >
