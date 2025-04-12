@@ -6,7 +6,7 @@ import { useKOLProfileData } from '@/hooks/useContractData';
 import { Message } from './Message';
 import { useDecryptedMessage, useMessage, useMessaging } from '@/hooks/useMessaging';
 import { decryptMessage } from '@/utils/encryption';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Clock } from 'lucide-react';
 import { useActiveWallet } from '@/hooks/useActiveWallet';
 import { Address } from 'viem';
 import { format } from 'date-fns';
@@ -17,6 +17,7 @@ interface ContactItemProps {
     contact: Address;
     active?: boolean;
     lastMessage?: Message;
+    isActive?: boolean;    
     onClick: (contact: Address) => void;
 }
 
@@ -24,6 +25,7 @@ export const ContactItem: React.FC<ContactItemProps> = ({
     contact, 
     active = false, 
     lastMessage,
+    isActive,
     onClick 
 }) => {
     const { profile: {profileIpfsHash, name, handle, wallet} } = useKOLProfileData(contact);
@@ -31,6 +33,8 @@ export const ContactItem: React.FC<ContactItemProps> = ({
     const isClient = useIsClient();
     const { address } = useActiveWallet();
     const [formattedTimestamp, setFormattedTimestamp] = useState<string>('');
+
+    const isExpired = !isActive;
 
     const needsReply = lastMessage && 
                        address && 
@@ -84,12 +88,13 @@ export const ContactItem: React.FC<ContactItemProps> = ({
 
     return (
         <div 
-            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 flex items-center border-b border-gray-100 ${active ? 'bg-blue-50' : ''}`}
+            className={`px-4 py-3 cursor-pointer hover:bg-gray-50 flex items-center border-b border-gray-100 ${active ? 'bg-blue-50' : ''} ${isExpired ? 'opacity-50' : ''}`}
             onClick={handleItemClick}
         >
             <div className="relative mr-4">
                 {renderAvatar()}
             </div>
+
             <div className="flex-grow min-w-0">
                 <div className="flex justify-between items-center">
                     <h3 className="font-medium truncate">{name || `${wallet.slice(0, 6)}...${wallet.slice(-6)}`}</h3>
@@ -107,6 +112,12 @@ export const ContactItem: React.FC<ContactItemProps> = ({
                             <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                                 {formattedTimestamp}
                             </span>
+                            {isExpired && (
+                                <div className="bg-amber-100 border border-amber-300 text-amber-800 rounded-full px-2 py-0.5 text-xs flex items-center shadow-sm">
+                                    <Clock size={12} className="mr-1" />
+                                    <span>Expired</span>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -115,7 +126,7 @@ export const ContactItem: React.FC<ContactItemProps> = ({
                         <p className="text-xs text-gray-600 truncate mb-1">{handle}</p>
                         {decryptedMessage && (
                             <p className="text-sm text-gray-500 truncate mt-1">
-                                {decryptedMessage}
+                               {lastMessage?.senderId === address ? 'You: ' : ''} {decryptedMessage}
                             </p>
                         )}
                         {

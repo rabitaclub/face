@@ -13,6 +13,7 @@ import { FiCheckCircle, FiShare2 } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Address } from 'viem';
+import appConfig from '@/config/app.config.json';
 
 interface KolListItemProps {
     profile: KOLProfile;
@@ -29,13 +30,12 @@ export const KolListItem: React.FC<KolListItemProps> = ({
     className,
     variant = 'list'
 }) => {
-    const router = useRouter();
     const formattedFee = profile.formattedFee || formatEther(profile.fee);
     const { profile: { profileIpfsHash }, isLoading } = useKOLProfileData(profile.wallet);
 
     const handleShare = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const url = `${window.location.origin}/messages/${profile.wallet}`;
+        const url = `${appConfig.url}/messages/@${profile.handle}`;
         if (navigator.share) {
             navigator.share({
                 title: `Chat with ${profile.name}`,

@@ -26,11 +26,11 @@ export const encryptMessage = async (
   message: string,
   publicKey: string
 ): Promise<string> => {
-  console.debug('Encrypting message...', publicKey, message);
+  // console.debug('Encrypting message...', publicKey, message);
   
   try {
     const encryptedMessage = await EthCrypto.encryptWithPublicKey(publicKey.slice(2, publicKey.length), message);
-    console.debug(encryptedMessage)
+    // console.debug(encryptedMessage)
 
     return JSON.stringify(encryptedMessage, null, 2);
   } catch (error) {
@@ -43,12 +43,12 @@ export const decryptMessage = async (
   encryptedData: string,
   privateKey: string
 ): Promise<string> => {
-  console.debug('Decrypting message...');
+  // console.debug('Decrypting message...');
   
   try {
     const encryptedDataParsed = JSON.parse(encryptedData);
     const decryptedMessage = await EthCrypto.decryptWithPrivateKey(privateKey, encryptedDataParsed);
-    // console.debug(decryptedMessage)
+    // // console.debug(decryptedMessage)
     return decryptedMessage;
   } catch (error) {
     console.error('Error in decryptMessage:', error);

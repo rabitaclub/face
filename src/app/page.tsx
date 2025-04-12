@@ -11,6 +11,7 @@ import { Footer } from "@/components/home/Footer";
 import { FeatureModal } from "@/components/home/FeatureModal";
 import { TopKOLsSection } from "@/components/home/TopKOLsSection";
 import RoadmapSection from "@/components/home/RoadmapSection";
+import { FAQSection } from "@/components/home/FAQSection";
 
 interface Feature {
   title: string;
@@ -56,6 +57,7 @@ export default function Home() {
       <PlatformFeaturesSection />
       <HowItWorksSection />
       <RoadmapSection />
+      <FAQSection />
       <OnboardingSection />
       <Footer />
 

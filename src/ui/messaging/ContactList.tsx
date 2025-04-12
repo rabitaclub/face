@@ -40,8 +40,9 @@ export const ContactList: React.FC<ContactListProps> = ({
                         <ContactItem 
                             key={contact.participantAddress} 
                             contact={contact.participantAddress as Address} 
-                            active={selectedContactId === contact.participantAddress}
+                            active={selectedContactId?.toLowerCase() === contact.participantAddress.toLowerCase()}
                             lastMessage={contact.lastMessage}
+                            isActive={contact.isActive}
                             onClick={onContactSelect}
                         />
                     ))

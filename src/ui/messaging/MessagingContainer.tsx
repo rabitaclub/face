@@ -24,6 +24,7 @@ import { useUnrepliedMessages } from './hooks/useUnrepliedMessages';
 
 interface MessagingContainerProps {
     initialKolAddress?: `0x${string}`;
+    isHandle?: boolean;
 }
 
 const DefaultChatView = () => (
@@ -46,7 +47,7 @@ const DefaultChatView = () => (
     </div>
 );
 
-export function MessagingContainer({ initialKolAddress }: MessagingContainerProps) {
+export function MessagingContainer({ initialKolAddress, isHandle }: MessagingContainerProps) {
     const [isRouteChanging, setIsRouteChanging] = useState(false);
     const [hasHistory, setHasHistory] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
@@ -72,7 +73,7 @@ export function MessagingContainer({ initialKolAddress }: MessagingContainerProp
         shareConversationLink
     } = useChat();
 
-    const { profile: kolProfile, isLoading: isKolLoading } = useKOLProfileData(initialKolAddress);
+    const { profile: kolProfile, isLoading: isKolLoading } = useKOLProfileData(initialKolAddress, isHandle);
 
     const {
         isMobile,

@@ -40,7 +40,7 @@ const RABITA_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_RABITA_REGISTRY_ADDRESS 
  * Custom hook to fetch KOL profile data from the RabitaRegistry contract
  * Fetches data for the connected wallet address and determines if it exists in the registry
  */
-export function useKOLProfileData(addressOverride?: Address, enabled = true): ProfileDataResult {
+export function useKOLProfileData(addressOverride?: Address, isHandle = false, enabled = true): ProfileDataResult {
   const { address: connectedAddress, isConnected } = useActiveWallet();
   const address = addressOverride || connectedAddress;
   
@@ -58,6 +58,12 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
       address: RABITA_REGISTRY_ADDRESS,
       abi: RABITA_REGISTRY_ABI,
       read: {
+        kolProfileUsingHandle: async (args: [string, string]) => publicClient.readContract({
+          address: RABITA_REGISTRY_ADDRESS,
+          abi: RABITA_REGISTRY_ABI,
+          functionName: 'socialHandleToKOLProfile',
+          args
+        }),
         kolProfiles: async (args: [Address]) => publicClient.readContract({
           address: RABITA_REGISTRY_ADDRESS,
           abi: RABITA_REGISTRY_ABI,
@@ -89,11 +95,18 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
       }
 
       try {
-        const profileData = await contract.read.kolProfiles([address as Address]) as any;
-        const pgpPublicKeys = await contract.read.pgpPublicKeys([address as Address]) as any;
-        console.debug('pgpPublicKeys', pgpPublicKeys)
-        const pgpNonce = await contract.read.pgpNonce([address as Address]) as any;
-        console.debug('pgpNonce', pgpNonce)
+        // console.debug('address', address, isHandle)
+        let profileData: any;
+        if (isHandle) {
+          const profileDataSocial = await contract.read.kolProfileUsingHandle(['twitter', address]) as any;
+          profileData = await contract.read.kolProfiles([profileDataSocial[0] as Address]) as any;
+        } else {
+          profileData = await contract.read.kolProfiles([address]) as any;
+        }
+        // console.debug('profileData for', address, isHandle, profileData)
+        const pgpPublicKeys = await contract.read.pgpPublicKeys([profileData[0] as Address]) as any;
+        // // console.debug('pgpPublicKeys', pgpPublicKeys)
+        const pgpNonce = await contract.read.pgpNonce([profileData[0] as Address]) as any;
         const exists = profileData[0] !== '0x0000000000000000000000000000000000000000';
          
         return {
@@ -103,8 +116,10 @@ export function useKOLProfileData(addressOverride?: Address, enabled = true): Pr
           name: exists ? profileData[3] : address?.slice(0, 6) + '...' + address?.slice(-6),
           fee: exists ? profileData[4] : BigInt(0),
           profileIpfsHash: exists ? profileData[5] : null,
-          verified: exists ? profileData[6] : false,
+          verified: exists ? profileData[8] : false,
           exists,
+          tags: exists ? profileData[6] : null,
+          description: exists ? profileData[7] : null,
           pgpKey: {
             publicKey: pgpPublicKeys,
             pgpNonce: pgpNonce

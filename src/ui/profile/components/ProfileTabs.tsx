@@ -12,13 +12,13 @@ interface ProfileTabsProps {
 }
 
 export function ProfileTabs({ profile, metrics }: ProfileTabsProps) {
-  const { count: unrepliedCount } = useUnrepliedMessages();
+  // const { count: unrepliedCount } = useUnrepliedMessages();
 
   return (
     <div className="mt-8">
-      <Tabs defaultValue="messages">
-        <TabsList className="grid grid-cols-3 mb-6">
-          <TabsTrigger 
+      <Tabs defaultValue="earnings">
+        <TabsList className="grid grid-cols-2 mb-6">
+          {/* <TabsTrigger 
             value="messages" 
             className="data-[state=inactive]:text-white/40 transition-colors duration-200 relative"
           >
@@ -32,7 +32,7 @@ export function ProfileTabs({ profile, metrics }: ProfileTabsProps) {
                 compact={unrepliedCount === 1}
               />
             </div>
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger 
             value="earnings" 
             className="data-[state=inactive]:text-white/40 transition-colors duration-200"
@@ -47,9 +47,9 @@ export function ProfileTabs({ profile, metrics }: ProfileTabsProps) {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="messages" className="space-y-4">
+        {/* <TabsContent value="messages" className="space-y-4">
           <MessagesTab profile={profile} />
-        </TabsContent>
+        </TabsContent> */}
         
         <TabsContent value="earnings" className="space-y-4">
           <EarningsTab profile={profile} metrics={metrics} />

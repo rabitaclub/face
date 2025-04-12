@@ -225,9 +225,9 @@ export const useContactList = () => {
 
     useEffect(() => {
         if (conversationData) {
-            // console.debug("Conversation data", conversationData);
+            // // console.debug("Conversation data", conversationData);
             const conversationSummaries = processConversationSummaries(conversationData, address || '');
-            // console.debug("Conversation summaries", conversationSummaries);
+            // // console.debug("Conversation summaries", conversationSummaries);
             setContacts(conversationSummaries);
         }
     }, [conversationData, address, isFetchingMessages]);

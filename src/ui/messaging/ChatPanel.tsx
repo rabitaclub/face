@@ -216,7 +216,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }, []);
 
     useEffect(() => {
-        // console.debug('messages', messages);
+        // // console.debug('messages', messages);
         scrollToBottom();
     }, [messages, scrollToBottom]);
     

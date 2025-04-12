@@ -57,9 +57,9 @@ export const PlatformFeaturesSection = () => {
               icon={<FaRobot className="h-6 w-6 text-primary" />}
               title="automated messaging"
               items={[
-                { icon: <HiChatAlt2 className="text-primary mt-1" />, text: "encrypted ipfs based message-storage" },
+                { icon: <HiChatAlt2 className="text-primary mt-1" />, text: "encrypted message-storage" },
                 { icon: <FaClock className="text-primary mt-1" />, text: "automatic triggers powered by chainlink keepers" },
-                { icon: <FaHandshake className="text-primary mt-1" />, text: "seamless kol-user matching" }
+                { icon: <FaHandshake className="text-primary mt-1" />, text: "seamless kol-user interaction" }
               ]}
             />
 
@@ -67,7 +67,7 @@ export const PlatformFeaturesSection = () => {
               icon={<FaWallet className="h-6 w-6 text-primary" />}
               title="secure payments"
               items={[
-                { icon: <HiCurrencyDollar className="text-primary mt-1" />, text: "instant bnb payment processing" },
+                { icon: <HiCurrencyDollar className="text-primary mt-1" />, text: "instant payment processing" },
                 { icon: <FaShieldAlt className="text-primary mt-1" />, text: "escrow-based payment protection" },
                 { icon: <HiUserGroup className="text-primary mt-1" />, text: "transparent fee distribution" }
               ]}

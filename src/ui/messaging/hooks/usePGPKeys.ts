@@ -22,7 +22,7 @@ export const usePGPKeys = (address: string) => {
             staleTime: 1000 * 10,
             refetchOnMount: true,
             retry(failureCount, error) {
-                console.debug('retry', failureCount, error);
+                // console.debug('retry', failureCount, error);
                 return failureCount < 3;
             },
             refetchOnWindowFocus: true,
@@ -32,13 +32,13 @@ export const usePGPKeys = (address: string) => {
 
     useEffect(() => {
         if (pgpKeys && pgpKeys.senderPGPKeys.length > 0) {
-            console.debug('pgpKeys', pgpKeys);
+            // console.debug('pgpKeys', pgpKeys);
             setPublicKey(pgpKeys.senderPGPKeys[0].pgpPublicKey);
             setPgpNonce(pgpKeys.senderPGPKeys[0].pgpNonce);
         }
     }, [pgpKeys]);
 
-    // console.debug('publicKey', publicKey, pgpKeys, isLoadingPGPKeys);
+    // // console.debug('publicKey', publicKey, pgpKeys, isLoadingPGPKeys);
 
     return { publicKey, pgpNonce, isLoadingPGPKeys };
 }

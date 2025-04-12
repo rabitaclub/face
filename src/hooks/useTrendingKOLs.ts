@@ -202,7 +202,7 @@ export function useTrendingKOLs({
     
     try {
       const processed = data.kolregistereds.map(kol => {
-        console.debug('kol', kol);
+        // console.debug('kol', kol);
         const messageCount = kol.messages?.length || 0;
         const totalFees = (kol.messages || []).reduce(
           (sum, msg) => sum + BigInt(msg.fee || "0"), 
@@ -273,7 +273,7 @@ export function useTrendingKOLs({
         } as TrendingKOLProfile;
       });
       
-      console.debug('processed', processed);
+      // console.debug('processed', processed);
       setProcessedKOLs(processed);
     } catch (err) {
       console.error("Error processing trending KOLs data:", err);

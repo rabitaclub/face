@@ -37,7 +37,7 @@ export const useDecryptedMessage = (message?: Message) => {
 
   useEffect(() => {
     if (data && privateKey && isInitialized) {
-      console.debug('decrypting message', message?.text);
+      // console.debug('decrypting message', message?.text);
       decryptMessage(data.metadata.senderId?.toLowerCase() === address?.toLowerCase() ? data.userContent : data.content, privateKey).then(setDecryptedMessage);
     }
   }, [data, privateKey, isInitialized, message]);

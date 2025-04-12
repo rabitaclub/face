@@ -67,7 +67,7 @@ export function useIpfsUpload() {
       
       if (data.gatewayUrl) {
         // Process the successful result
-        // console.debug('data', data);
+        // // console.debug('data', data);
         const result: UploadResult = {
           gatewayUrl: data.gatewayUrl
         };

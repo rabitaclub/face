@@ -212,3 +212,16 @@ export const UNREPLIED_MESSAGES_QUERY = gql`
     }
   }
 `;
+
+export const KOL_EARNINGS_QUERY = gql`
+  query GetKOLEarnings($userAddress: Bytes!) {
+    kolpaids(where: {kol: $userAddress}) {
+      id
+      kol
+      sender
+      amount
+      transactionHash
+      blockTimestamp
+    }
+  }
+`;

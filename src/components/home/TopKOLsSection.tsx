@@ -253,7 +253,7 @@ export const TopKOLsSection = () => {
                 >
                   <KOLCard 
                     kol={kol} 
-                    showRank={index < 3} 
+                    showRank={false} 
                     showTrend={true} 
                     showAverageResponseTime={false}
                     animated={true}
