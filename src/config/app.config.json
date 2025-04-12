@@ -13,7 +13,7 @@
     "keywords": ["connections marketplace", "rabita", "decentralized network", "blockchain social", "web3 platform", "crypto networking", "professional connections", "BSC marketplace", "blockchain networking", "decentralized platform", "digital networking", "pay to reach", "pay to connect", "kol marketplace"],
     "authors": [{ "name": "Robin Rajput", "url": "https://github.com/0xrobinr" }],
     "creator": "Team Rabita",
-    "explorer": "https://testnet.bscscan.com",
+    "explorer": "https://bscscan.com",
     "images": {
         "favicon": "/favicon.ico",
         "icon": "/logo_icon.png",
