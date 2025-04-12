@@ -20,7 +20,7 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 const config = getDefaultConfig({
     appName: 'Rabita Club',
     projectId: '665b79fbe4637d29026faa5e001f7cd1',
-    chains: [bscTestnet],
+    chains: [bsc],
     ssr: true
 });
 

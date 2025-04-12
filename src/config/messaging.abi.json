@@ -8,7 +8,7 @@
             },
             {
                 "internalType": "address",
-                "name": "_feeCollector",
+                "name": "_devAddress",
                 "type": "address"
             }
         ],
@@ -22,7 +22,7 @@
     },
     {
         "inputs": [],
-        "name": "FeeClaimTimelockActive",
+        "name": "EmptyContent",
         "type": "error"
     },
     {
@@ -37,7 +37,18 @@
     },
     {
         "inputs": [],
-        "name": "InvalidFeeCollectorAddress",
+        "name": "InvalidAddress",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "size",
+                "type": "uint256"
+            }
+        ],
+        "name": "InvalidBatchSize",
         "type": "error"
     },
     {
@@ -47,7 +58,22 @@
     },
     {
         "inputs": [],
-        "name": "MessageDeadlinePassed",
+        "name": "InvalidPGPKey",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidPayoutAmount",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "InvalidRefundPercentage",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "KOLNotActive",
         "type": "error"
     },
     {
@@ -63,11 +89,6 @@
     {
         "inputs": [],
         "name": "NotAuthorizedKOL",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "NotFeeCollector",
         "type": "error"
     },
     {
@@ -154,6 +175,25 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "oldDevAddress",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newDevAddress",
+                "type": "address"
+            }
+        ],
+        "name": "DevAddressUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
@@ -161,12 +201,56 @@
             },
             {
                 "indexed": false,
+                "internalType": "address",
+                "name": "devAddress",
+                "type": "address"
+            }
+        ],
+        "name": "FeesTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "kol",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
                 "internalType": "uint256",
-                "name": "timestamp",
+                "name": "amount",
                 "type": "uint256"
             }
         ],
-        "name": "FeesClaimed",
+        "name": "KOLPaid",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "oldKOLRegistry",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newKOLRegistry",
+                "type": "address"
+            }
+        ],
+        "name": "KOLRegistryUpdated",
         "type": "event"
     },
     {
@@ -263,6 +347,25 @@
             {
                 "indexed": true,
                 "internalType": "address",
+                "name": "receiver",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "RefundSent",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
                 "name": "sender",
                 "type": "address"
             },
@@ -286,6 +389,25 @@
             }
         ],
         "name": "SenderPGPUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "oldPercent",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newPercent",
+                "type": "uint256"
+            }
+        ],
+        "name": "TimeoutRefundPercentUpdated",
         "type": "event"
     },
     {
@@ -317,19 +439,6 @@
     {
         "inputs": [],
         "name": "PLATFORM_FEE_PERCENT",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "accumulatedFees",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -441,27 +550,7 @@
     },
     {
         "inputs": [],
-        "name": "claimFees",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "feeClaimDelay",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "feeCollector",
+        "name": "devAddress",
         "outputs": [
             {
                 "internalType": "address",
@@ -510,6 +599,25 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "kolEarnedFees",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "kolRegistry",
         "outputs": [
@@ -548,19 +656,6 @@
     },
     {
         "inputs": [],
-        "name": "lastFeeClaimTimestamp",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
         "name": "messageCount",
         "outputs": [
             {
@@ -583,9 +678,9 @@
         "name": "messageMetadata",
         "outputs": [
             {
-                "internalType": "bytes",
-                "name": "senderPGPPublicKey",
-                "type": "bytes"
+                "internalType": "bytes32",
+                "name": "senderPGPPublicKeyHash",
+                "type": "bytes32"
             },
             {
                 "internalType": "uint256",
@@ -732,6 +827,58 @@
         "name": "sendEncryptedMessage",
         "outputs": [],
         "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_devAddress",
+                "type": "address"
+            }
+        ],
+        "name": "setDevAddress",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_kolRegistry",
+                "type": "address"
+            }
+        ],
+        "name": "setKOLRegistry",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_percent",
+                "type": "uint256"
+            }
+        ],
+        "name": "setTimeoutRefundPercent",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "timeoutRefundPercent",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

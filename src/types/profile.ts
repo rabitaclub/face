@@ -23,6 +23,9 @@ export interface KOLProfile {
   };
   tags?: string;
   description?: string;
+  activeDays?: boolean[];
+  globalStartTime?: number;
+  globalEndTime?: number;
 }
 
 /**

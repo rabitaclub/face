@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { createPublicClient, http, Address, parseAbi, formatEther } from 'viem';
-import { bscTestnet } from 'viem/chains';
+import { bsc } from 'viem/chains';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveWallet } from './useActiveWallet';
 import RABITA_REGISTRY_ABI from '@/config/rabita.abi.json';
@@ -46,7 +46,7 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
   
   // Create a publicClient to interact with the blockchain
   const publicClient = useMemo(() => createPublicClient({
-    chain: bscTestnet,
+    chain: bsc,
     transport: http()
   }), []);
 
@@ -81,6 +81,24 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
           abi: RABITA_REGISTRY_ABI,
           functionName: 'pgpNonce',
           args
+        }),
+        activeDays: async (args: [Address, number]) => publicClient.readContract({
+          address: RABITA_REGISTRY_ADDRESS,
+          abi: RABITA_REGISTRY_ABI,
+          functionName: 'kolActiveDays',
+          args
+        }),
+        globalStartTime: async (args: [Address]) => publicClient.readContract({
+          address: RABITA_REGISTRY_ADDRESS,
+          abi: RABITA_REGISTRY_ABI,
+          functionName: 'kolActiveTime',
+          args
+        }),
+        globalEndTime: async (args: [Address]) => publicClient.readContract({
+          address: RABITA_REGISTRY_ADDRESS,
+          abi: RABITA_REGISTRY_ABI,
+          functionName: 'kolInactiveTime',
+          args
         })
       }
     };
@@ -108,6 +126,17 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
         // // console.debug('pgpPublicKeys', pgpPublicKeys)
         const pgpNonce = await contract.read.pgpNonce([profileData[0] as Address]) as any;
         const exists = profileData[0] !== '0x0000000000000000000000000000000000000000';
+
+        let activeDays: boolean[] = [];
+        for (let i = 0; i < 7; i++) {
+          activeDays.push(await contract.read.activeDays([profileData[0] as Address, i]) as any);
+        }
+        const globalStartTime = await contract.read.globalStartTime([profileData[0] as Address]) as any;
+        const globalEndTime = await contract.read.globalEndTime([profileData[0] as Address]) as any;
+
+        console.debug('activeDays', activeDays)
+        console.debug('globalStartTime', globalStartTime)
+        console.debug('globalEndTime', globalEndTime)
          
         return {
           wallet: exists ? profileData[0] : address as Address,
@@ -123,7 +152,10 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
           pgpKey: {
             publicKey: pgpPublicKeys,
             pgpNonce: pgpNonce
-          }
+          },
+          activeDays,
+          globalStartTime: Number(globalStartTime),
+          globalEndTime: Number(globalEndTime)
         };
       } catch (err) {
         console.error('Error fetching KOL profile:', err);
@@ -177,7 +209,7 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
  */
 export function useKOLProfileByHandle(socialHandle?: string): Omit<ProfileDataResult, 'refetch' | 'isConnected' | 'address'> {
   const publicClient = useMemo(() => createPublicClient({
-    chain: bscTestnet,
+    chain: bsc,
     transport: http()
   }), []);
 

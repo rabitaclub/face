@@ -30,6 +30,44 @@ export const useUpdateProfile = () => {
         }
     }, [writeContractAsync]);
 
+    const updateActiveTimeCallback = useCallback(async (startTime: string | number, endTime: string | number) => {
+        console.debug('updateActiveTimeCallback', startTime, endTime);
+        setIsLoading(true);
+        try {
+            const tx = await writeContractAsync({
+                address: env.RABITA_REGISTRY_ADDRESS as `0x${string}`,
+                abi: kolProfileAbi,
+                functionName: 'updateKOLActiveTime',
+                args: [startTime, endTime],
+            });
+
+            setTransactionHash(tx);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [writeContractAsync]);
+
+    const updateActiveDaysCallback = useCallback(async (days: string[] | number[], active: boolean[]) => {
+        console.debug('updateActiveDaysCallback', days, active);
+        setIsLoading(true);
+        try {
+            const tx = await writeContractAsync({
+                address: env.RABITA_REGISTRY_ADDRESS as `0x${string}`,
+                abi: kolProfileAbi,
+                functionName: 'updateKOLActiveDays',
+                args: [days, active],
+            });
+
+            setTransactionHash(tx);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [writeContractAsync]);
+
     return useMemo(() => ({
         updateFeeCallback,
         isLoading: isLoading || isTransactionLoading,
@@ -37,5 +75,7 @@ export const useUpdateProfile = () => {
         error,
         transactionHash,
         transactionReceipt,
-    }), [updateFeeCallback, isLoading, isTransactionLoading, isError, error, transactionHash, transactionReceipt]);
+        updateActiveTimeCallback,
+        updateActiveDaysCallback,
+    }), [updateFeeCallback, isLoading, isTransactionLoading, isError, error, transactionHash, transactionReceipt, updateActiveTimeCallback, updateActiveDaysCallback]);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, act } from 'react';
 import { ArrowLeft, Send, Copy, X, Share2, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import { KOLProfile } from '@/types/profile';
 import SecureImage from '@/components/SecureImage';
@@ -219,6 +219,17 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         // // console.debug('messages', messages);
         scrollToBottom();
     }, [messages, scrollToBottom]);
+
+    const isKolActive = useMemo(() => {
+        let activeDays = contact.activeDays?.some(day => day) || false;
+        let currentTime = Math.floor(new Date().getTime() / 1000);
+        let timePassedFromMidnightUTC = currentTime % 86400;
+        console.debug('contact', contact.activeDays, contact.globalStartTime, contact.globalEndTime, timePassedFromMidnightUTC);
+        let activeTime = contact.globalStartTime && contact.globalEndTime && (contact.globalStartTime < timePassedFromMidnightUTC) && (contact.globalEndTime > timePassedFromMidnightUTC);
+        
+        console.debug('isKolActive', activeDays, activeTime);
+        return activeDays && (activeTime === 0 ? true : activeTime);
+    }, [contact.activeDays, contact.globalStartTime, contact.globalEndTime]);
     
     return (
         <div
@@ -387,13 +398,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             
             {/* Message input */}
             {
-                isSameUser && <div className="flex-none p-4 border-t border-gray-200">
+                isSameUser && isKolActive && <div className="flex-none p-4 border-t border-gray-200">
                     <div className="text-xs text-gray-500 text-center">
                         You cannot send messages to yourself.
                     </div>
                 </div>
             }
-            { !isSameUser && <div className="flex-none p-4 border-t border-gray-200">
+            {
+                (!isSameUser && !isKolActive) && <div className="flex-none p-4 border-t border-gray-200">
+                    <div className="text-xs text-gray-500 text-center">
+                        {contact.name || "-"} is not currently active.
+                    </div>
+                </div>
+            }
+            { (!isSameUser && isKolActive) ? <div className="flex-none p-4 border-t border-gray-200">
                 { isInitialized && (publicKey !== null || publicKey !== "") && !isKeysLoading && <div className="flex flex-col gap-2">
                     <div className="relative">
                         <div className="flex-1 flex flex-col">
@@ -461,7 +479,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     </button>
                 </div>
                 }
-            </div>
+            </div> : <></>
             }
         </div>
     );
