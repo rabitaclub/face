@@ -12,7 +12,8 @@ import {
   BarChart, 
   Brain,
   Map,
-  Share2
+  Share2,
+  Award
 } from 'lucide-react';
 
 interface RoadmapItem {
@@ -67,10 +68,10 @@ const RoadmapSection: React.FC = () => {
       icon: <BarChart className="w-6 h-6 text-blue-500" />
     },
     {
-      title: 'AI-Powered Content Recommendations',
-      description: 'Integrating machine learning to suggest relevant KOLs and content based on user preferences',
+      title: 'Decentralized Credential Verification',
+      description: 'Blockchain-based system for verifying professional credentials, experience, and endorsements without centralized authorities',
       status: 'planned',
-      icon: <Brain className="w-6 h-6 text-blue-500" />
+      icon: <Award className="w-6 h-6 text-blue-500" />
     }
   ];
 
