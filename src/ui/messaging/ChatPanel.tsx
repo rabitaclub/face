@@ -221,13 +221,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     }, [messages, scrollToBottom]);
 
     const isKolActive = useMemo(() => {
+        if (!contact.verified) return true;
         let activeDays = contact.activeDays?.some(day => day) || false;
         let currentTime = Math.floor(new Date().getTime() / 1000);
         let timePassedFromMidnightUTC = currentTime % 86400;
-        console.debug('contact', contact.activeDays, contact.globalStartTime, contact.globalEndTime, timePassedFromMidnightUTC);
+        // console.debug('contact', contact.activeDays, contact.globalStartTime, contact.globalEndTime, timePassedFromMidnightUTC);
         let activeTime = contact.globalStartTime && contact.globalEndTime && (contact.globalStartTime < timePassedFromMidnightUTC) && (contact.globalEndTime > timePassedFromMidnightUTC);
         
-        console.debug('isKolActive', activeDays, activeTime);
+        // console.debug('isKolActive', activeDays, activeTime);
         return activeDays && (activeTime === 0 ? true : activeTime);
     }, [contact.activeDays, contact.globalStartTime, contact.globalEndTime]);
     

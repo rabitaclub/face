@@ -47,7 +47,7 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
   // Create a publicClient to interact with the blockchain
   const publicClient = useMemo(() => createPublicClient({
     chain: bsc,
-    transport: http()
+    transport: http("https://bsc-dataseed.binance.org/")
   }), []);
 
   // Create a contract instance
@@ -134,9 +134,9 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
         const globalStartTime = await contract.read.globalStartTime([profileData[0] as Address]) as any;
         const globalEndTime = await contract.read.globalEndTime([profileData[0] as Address]) as any;
 
-        console.debug('activeDays', activeDays)
-        console.debug('globalStartTime', globalStartTime)
-        console.debug('globalEndTime', globalEndTime)
+        // console.debug('activeDays', activeDays)
+        // console.debug('globalStartTime', globalStartTime)
+        // console.debug('globalEndTime', globalEndTime)
          
         return {
           wallet: exists ? profileData[0] : address as Address,
