@@ -163,8 +163,8 @@ export function useKOLProfileData(addressOverride?: Address, isHandle = false, e
       }
     },
     enabled: enabled && !!address && !!contract,
-    staleTime: 60 * 1000, // Consider data fresh for 1 minute
-    refetchOnWindowFocus: true,
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    refetchOnWindowFocus: false,
     retry: 2
   });
 
@@ -260,7 +260,7 @@ export function useKOLProfileByHandle(socialHandle?: string): Omit<ProfileDataRe
       }
     },
     enabled: !!socialHandle && !!contract,
-    staleTime: 60 * 1000,
+    staleTime: 2 * 60 * 1000,
     retry: 2
   });
 
